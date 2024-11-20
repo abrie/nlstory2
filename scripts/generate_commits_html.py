@@ -40,6 +40,16 @@ def get_commits(repository, token):
                                                         }
                                                     }
                                                 }
+                                                referencedIssues(first: 1) {
+                                                    edges {
+                                                        node {
+                                                            number
+                                                            title
+                                                            body
+                                                            url
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
