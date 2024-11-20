@@ -86,9 +86,12 @@ def main():
 
     commits = get_commits(args.repository, token)
 
+    # Sort commits chronologically in ascending order
+    commits.sort(key=lambda x: x['author']['date'])
+
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('template.html')
-    output = template.render(commits=commits)
+    output = template.render(repository=args.repository, commits=commits)
 
     with open(args.output, 'w') as f:
         f.write(output)
