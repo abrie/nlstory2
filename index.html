@@ -6,7 +6,34 @@
     <title>nlstory2</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <h1>Commit History</h1>
+      <ul>
+        {% for commit in commits %}
+        <li>
+          <p><strong>Commit:</strong> {{ commit.node.oid }}</p>
+          <p><strong>Message:</strong> {{ commit.node.message }}</p>
+          <p><strong>Date:</strong> {{ commit.node.committedDate }}</p>
+          {% if commit.node.associatedPullRequests.edges %}
+          <p><strong>Pull Request:</strong> {{ commit.node.associatedPullRequests.edges[0].node.number }} - {{ commit.node.associatedPullRequests.edges[0].node.title }}</p>
+          <p><strong>PR State:</strong> {{ commit.node.associatedPullRequests.edges[0].node.state }}</p>
+          <p><strong>PR Merged:</strong> {{ commit.node.associatedPullRequests.edges[0].node.merged }}</p>
+          <p><strong>PR Closed:</strong> {{ commit.node.associatedPullRequests.edges[0].node.closed }}</p>
+          <p><strong>Referenced Issues and PRs:</strong></p>
+          <ul>
+            {% for event in commit.node.associatedPullRequests.edges[0].node.timelineItems.edges %}
+            <li>
+              {% if event.node.source.number %}
+              <p>{{ event.node.source.number }} - {{ event.node.source.title }}</p>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
