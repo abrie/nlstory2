@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repository Summary</title>
+  </head>
+  <body>
+    <h1>Repository Summary</h1>
+    <ul>
+      {% for commit in commits %}
+        <li>
+          <p>{{ commit.node.message }}</p>
+          {% if commit.node.associatedPullRequests.edges %}
+            <p>Merge: Yes</p>
+            <p>Pull Request: {{ commit.node.associatedPullRequests.edges[0].node.title }}</p>
+            {% if commit.node.associatedPullRequests.edges[0].node.associatedIssues.edges %}
+              <p>Issue: {{ commit.node.associatedPullRequests.edges[0].node.associatedIssues.edges[0].node.title }}</p>
+            {% endif %}
+          {% else %}
+            <p>Merge: No</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    <h2>Unmerged Pull Requests</h2>
+    <ul>
+      {% for commit in commits %}
+        {% if commit.node.associatedPullRequests.edges %}
+          {% for pr in commit.node.associatedPullRequests.edges %}
+            {% if not pr.node.merged %}
+              <li>
+                <p>Pull Request: {{ pr.node.title }}</p>
+                <p>Issue: {{ pr.node.associatedIssues.edges[0].node.title }}</p>
+              </li>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </body>
+</html>
