@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commit History</title>
+  </head>
+  <body>
+    <h1>Commit History for {{ repository }}</h1>
+    <ul>
+      {% for commit in commits %}
+      <li>
+        <p><strong>Commit:</strong> {{ commit.oid }}</p>
+        <p><strong>Message:</strong> {{ commit.message }}</p>
+        <p><strong>Author:</strong> {{ commit.author.name }} ({{ commit.author.email }})</p>
+        <p><strong>Date:</strong> {{ commit.author.date }}</p>
+        {% if commit.associatedPullRequests.edges %}
+        <p><strong>Pull Request:</strong></p>
+        <ul>
+          {% for pr in commit.associatedPullRequests.edges %}
+          <li>
+            <p><strong>PR Number:</strong> {{ pr.node.number }}</p>
+            <p><strong>Title:</strong> {{ pr.node.title }}</p>
+            <p><strong>Body:</strong> {{ pr.node.body }}</p>
+            <p><strong>Merged:</strong> {{ pr.node.merged }}</p>
+            <p><strong>URL:</strong> <a href="{{ pr.node.url }}">{{ pr.node.url }}</a></p>
+            {% if pr.node.closingIssuesReferences.edges %}
+            <p><strong>Closing Issues:</strong></p>
+            <ul>
+              {% for issue in pr.node.closingIssuesReferences.edges %}
+              <li>
+                <p><strong>Issue Number:</strong> {{ issue.node.number }}</p>
+                <p><strong>Title:</strong> {{ issue.node.title }}</p>
+                <p><strong>Body:</strong> {{ issue.node.body }}</p>
+                <p><strong>URL:</strong> <a href="{{ issue.node.url }}">{{ issue.node.url }}</a></p>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
