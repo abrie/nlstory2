@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commit History</title>
+  </head>
+  <body>
+    <h1>Commit History</h1>
+    <ul>
+      {% for commit in commits %}
+      <li>
+        <p><strong>Commit:</strong> {{ commit.oid }}</p>
+        <p><strong>Message:</strong> {{ commit.message }}</p>
+        <p><strong>Date:</strong> {{ commit.committedDate }}</p>
+        {% if commit.pull_request %}
+        <p><strong>Pull Request:</strong> <a href="{{ commit.pull_request.url }}">{{ commit.pull_request.title }}</a></p>
+        <p><strong>PR Merged:</strong> {{ commit.pull_request.merged }}</p>
+        <p><strong>PR Merged At:</strong> {{ commit.pull_request.mergedAt }}</p>
+        {% if commit.issues %}
+        <p><strong>Issues:</strong></p>
+        <ul>
+          {% for issue in commit.issues %}
+          <li><a href="{{ issue.url }}">{{ issue.title }}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
