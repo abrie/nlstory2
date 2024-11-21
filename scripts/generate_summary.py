@@ -14,11 +14,18 @@ def fetch_issues_and_prs(repository, token):
             title
             url
             createdAt
-            pullRequests(first: 10) {
+            timelineItems(itemTypes: CROSS_REFERENCED_EVENT, first: 10) {
               nodes {
-                title
-                url
-                createdAt
+                ... on CrossReferencedEvent {
+                  source {
+                    __typename
+                    ... on PullRequest {
+                      title
+                      url
+                      createdAt
+                    }
+                  }
+                }
               }
             }
           }
