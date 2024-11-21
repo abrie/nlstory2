@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity Summary</title>
+  </head>
+  <body>
+    <h1>Activity Summary</h1>
+    <ul>
+      {% for item in summary %}
+        <li>
+          <strong>{{ item.title }}</strong> ({{ item.createdAt }})
+          <ul>
+            {% for pr in item.pullRequests %}
+              <li>{{ pr.title }} ({{ pr.createdAt }})</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
