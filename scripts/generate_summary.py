@@ -61,7 +61,7 @@ def fetch_issues(owner, repo):
                 break
         else:
             raise Exception(f"Query failed to run by returning code of {response.status_code}. {query}")
-    return issues
+    return issues, query
 
 def generate_summary(issues):
     summary = []
@@ -94,20 +94,28 @@ def output_json(data, output_file):
     with open(output_file, 'w') as f:
         json.dump(data, f, indent=4)
 
+def output_query_json(query, output_file):
+    with open(output_file, 'w') as f:
+        json.dump({"query": query}, f, indent=4)
+
 def main():
     parser = argparse.ArgumentParser(description='Generate a summary of significant activity from a repository.')
     parser.add_argument('--repository', required=True, help='The repository to fetch data from (format: owner/repo).')
     parser.add_argument('--output', required=True, help='The output HTML file.')
     parser.add_argument('--json', help='The output JSON file.')
+    parser.add_argument('--query-json', help='The output JSON file for the GraphQL query.')
     args = parser.parse_args()
 
     owner, repo = args.repository.split('/')
-    issues = fetch_issues(owner, repo)
+    issues, query = fetch_issues(owner, repo)
     summary = generate_summary(issues)
     render_html(summary, args.output)
 
     if args.json:
         output_json(issues, args.json)
+    
+    if args.query_json:
+        output_query_json(query, args.query_json)
 
 if __name__ == "__main__":
     main()

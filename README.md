@@ -18,6 +18,12 @@ To output the query as JSON, use the `--json` parameter:
 python scripts/generate_summary.py --repository <owner/repo> --output <output_file> --json <json_output_file>
 ```
 
+To output the GraphQL query as JSON, use the `--query-json` parameter:
+
+```sh
+python scripts/generate_summary.py --repository <owner/repo> --output <output_file> --query-json <query_json_output_file>
+```
+
 ### Example
 
 ```sh
