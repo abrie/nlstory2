@@ -1,0 +1,24 @@
+<!-- This is the template for the summary output -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repository Summary</title>
+  </head>
+  <body>
+    <h1>Repository Summary</h1>
+    <ul>
+      {% for issue in summary %}
+      <li>
+        <strong>{{ issue.title }}</strong> (created at {{ issue.created_at }})
+        <ul>
+          {% for pull in issue.pull_requests %}
+          <li>{{ pull.title }} (created at {{ pull.created_at }})</li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
