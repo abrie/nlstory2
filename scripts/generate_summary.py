@@ -2,6 +2,7 @@ import requests
 import os
 import argparse
 import jinja2
+import json
 
 def fetch_issues(owner, repo):
     url = 'https://api.github.com/graphql'
@@ -89,16 +90,24 @@ def render_html(summary, output_file):
     with open(output_file, 'w') as f:
         f.write(output)
 
+def output_json(data, output_file):
+    with open(output_file, 'w') as f:
+        json.dump(data, f, indent=4)
+
 def main():
     parser = argparse.ArgumentParser(description='Generate a summary of significant activity from a repository.')
     parser.add_argument('--repository', required=True, help='The repository to fetch data from (format: owner/repo).')
     parser.add_argument('--output', required=True, help='The output HTML file.')
+    parser.add_argument('--json', help='The output JSON file.')
     args = parser.parse_args()
 
     owner, repo = args.repository.split('/')
     issues = fetch_issues(owner, repo)
     summary = generate_summary(issues)
     render_html(summary, args.output)
+
+    if args.json:
+        output_json(issues, args.json)
 
 if __name__ == "__main__":
     main()
