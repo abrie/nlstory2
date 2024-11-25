@@ -1,0 +1,26 @@
+{
+  repository(owner: "abrie", name: "nl12") {
+    issues(first: 100) {
+      edges {
+        node {
+          __typename
+          title
+          timelineItems(first: 100) {
+            nodes {
+              ... on CrossReferencedEvent {
+                source {
+                  ... on PullRequest {
+                    __typename
+                    merged
+                    number
+                    title
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
