@@ -39,9 +39,9 @@ def main():
                                     ... on CrossReferencedEvent {
                                         source {
                                             ... on PullRequest {
-                                                title
                                                 createdAt
                                                 url
+                                                merged
                                             }
                                         }
                                     }
@@ -62,9 +62,9 @@ def main():
         for pr_edge in issue["timelineItems"]["edges"]:
             pr = pr_edge["node"]["source"]
             pull_requests.append({
-                "title": pr["title"],
                 "createdAt": pr["createdAt"],
-                "url": pr["url"]
+                "url": pr["url"],
+                "merged": pr["merged"]
             })
         issues.append({
             "title": issue["title"],
