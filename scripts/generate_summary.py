@@ -44,6 +44,7 @@ def main():
                                                 createdAt
                                                 url
                                                 merged
+                                                headRefName
                                             }
                                         }
                                     }
@@ -65,7 +66,8 @@ def main():
             pr = pr_edge["node"]["source"]
             pull_requests.append({
                 "createdAt": pr["createdAt"],
-                "merged": pr["merged"]
+                "merged": pr["merged"],
+                "branch": pr["headRefName"]
             })
         issues.append({
             "title": issue["title"],
