@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repository Summary</title>
+  </head>
+  <body>
+    <h1>Summary of Significant Activity</h1>
+    <ul>
+      {% for issue in issues %}
+      <li>
+        <a href="{{ issue.url }}">{{ issue.title }}</a> - {{ issue.createdAt }}
+        <ul>
+          {% for pr in issue.pull_requests %}
+          <li>
+            <a href="{{ pr.url }}">{{ pr.title }}</a> - {{ pr.createdAt }}
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
