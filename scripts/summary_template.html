@@ -7,9 +7,10 @@
   </head>
   <body>
     <h1>Summary of Significant Activity</h1>
-    <ul>
+    <button id="toggleButton" onclick="toggleIssues()">Show Only Merged PR Issues</button>
+    <ul id="issuesList">
       {% for issue in issues %}
-      <li>
+      <li class="issue-item" data-has-merged-pr="{% if issue.pull_requests|selectattr('merged')|list %}true{% else %}false{% endif %}">
         <details>
           <summary>{{ issue.title }}</summary>
           <p>{{ issue.description }}</p>
@@ -25,5 +26,23 @@
       </li>
       {% endfor %}
     </ul>
+    <script>
+      function toggleIssues() {
+        const button = document.getElementById('toggleButton');
+        const issuesList = document.getElementById('issuesList');
+        const showAll = button.textContent.includes('Show Only Merged PR Issues');
+        button.textContent = showAll ? 'Show All Issues' : 'Show Only Merged PR Issues';
+        const issueItems = issuesList.getElementsByClassName('issue-item');
+        for (let item of issueItems) {
+          if (showAll) {
+            if (item.getAttribute('data-has-merged-pr') === 'false') {
+              item.style.display = 'none';
+            }
+          } else {
+            item.style.display = 'block';
+          }
+        }
+      }
+    </script>
   </body>
 </html>
