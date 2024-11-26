@@ -10,11 +10,11 @@
     <ul>
       {% for issue in issues %}
       <li>
-        <a href="{{ issue.url }}">{{ issue.title }}</a> - {{ issue.createdAt }}
+        <a href="{{ issue.url }}">{{ issue.createdAt }}</a>
         <ul>
           {% for pr in issue.pull_requests %}
           <li>
-            <a href="{{ pr.url }}">{{ pr.title }}</a> - {{ pr.createdAt }}
+            <a href="{{ pr.url }}">{{ pr.createdAt }}</a> - Merged: {{ pr.merged }}
           </li>
           {% endfor %}
         </ul>
