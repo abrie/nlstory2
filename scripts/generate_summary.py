@@ -23,7 +23,7 @@ def render_template(issues):
     return template.render(issues=issues)
 
 
-def main():
+def main(show_all_issues=True):
     query = """
     {
         repository(owner: "abrie", name: "nl12") {
@@ -69,13 +69,14 @@ def main():
                 "merged": pr["merged"],
                 "branch": pr["headRefName"]
             })
-        issues.append({
-            "title": issue["title"],
-            "createdAt": issue["createdAt"],
-            "url": issue["url"],
-            "description": issue["body"],
-            "pull_requests": pull_requests
-        })
+        if show_all_issues or any(pr["merged"] for pr in pull_requests):
+            issues.append({
+                "title": issue["title"],
+                "createdAt": issue["createdAt"],
+                "url": issue["url"],
+                "description": issue["body"],
+                "pull_requests": pull_requests
+            })
     issues.sort(key=lambda x: x["createdAt"])
     output = render_template(issues)
     with open("index.html", "w") as f:
@@ -83,4 +84,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate a summary of issues and pull requests.")
+    parser.add_argument("--show-all-issues", action="store_true", help="Show all issues, including those without merged PRs.")
+    args = parser.parse_args()
+    main(show_all_issues=args.show_all_issues)
