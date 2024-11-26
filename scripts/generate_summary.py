@@ -33,6 +33,7 @@ def main():
                         title
                         createdAt
                         url
+                        body
                         timelineItems(itemTypes: CROSS_REFERENCED_EVENT, first: 100) {
                             edges {
                                 node {
@@ -42,6 +43,7 @@ def main():
                                                 title
                                                 createdAt
                                                 url
+                                                merged
                                             }
                                         }
                                     }
@@ -62,14 +64,14 @@ def main():
         for pr_edge in issue["timelineItems"]["edges"]:
             pr = pr_edge["node"]["source"]
             pull_requests.append({
-                "title": pr["title"],
                 "createdAt": pr["createdAt"],
-                "url": pr["url"]
+                "merged": pr["merged"]
             })
         issues.append({
             "title": issue["title"],
             "createdAt": issue["createdAt"],
             "url": issue["url"],
+            "description": issue["body"],
             "pull_requests": pull_requests
         })
     issues.sort(key=lambda x: x["createdAt"])
