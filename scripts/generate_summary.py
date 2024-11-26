@@ -69,7 +69,7 @@ def main():
         })
     issues.sort(key=lambda x: x["createdAt"])
     output = render_template(issues)
-    with open("scripts/summary.html", "w") as f:
+    with open("summary.html", "w") as f:
         f.write(output)
 
 if __name__ == "__main__":
