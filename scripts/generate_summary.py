@@ -60,6 +60,10 @@ def get_commits_without_prs():
                                     }
                                 }
                             }
+                            pageInfo {
+                                hasNextPage
+                                endCursor
+                            }
                         }
                     }
                 }
@@ -67,16 +71,30 @@ def get_commits_without_prs():
         }
     }
     """
-    result = query_github(query)
     commits_without_prs = []
-    for edge in result["data"]["repository"]["defaultBranchRef"]["target"]["history"]["edges"]:
-        commit = edge["node"]
-        if not commit["associatedPullRequests"]["edges"]:
-            commits_without_prs.append({
-                "oid": commit["oid"],
-                "message": commit["message"],
-                "committedDate": commit["committedDate"]
-            })
+    has_next_page = True
+    end_cursor = None
+
+    while has_next_page:
+        paginated_query = query
+        if end_cursor:
+            paginated_query = query.replace("first: 100", f'first: 100, after: "{end_cursor}"')
+        
+        result = query_github(paginated_query)
+        history = result["data"]["repository"]["defaultBranchRef"]["target"]["history"]
+        
+        for edge in history["edges"]:
+            commit = edge["node"]
+            if not commit["associatedPullRequests"]["edges"]:
+                commits_without_prs.append({
+                    "oid": commit["oid"],
+                    "message": commit["message"],
+                    "committedDate": commit["committedDate"]
+                })
+        
+        has_next_page = history["pageInfo"]["hasNextPage"]
+        end_cursor = history["pageInfo"]["endCursor"]
+
     return commits_without_prs
 
 
@@ -107,27 +125,49 @@ def main():
                                     }
                                 }
                             }
+                            pageInfo {
+                                hasNextPage
+                                endCursor
+                            }
                         }
                     }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
                 }
             }
         }
     }
     """
-    result = query_github(query)
     prompt_events = []
-    for edge in result["data"]["repository"]["issues"]["edges"]:
-        issue = edge["node"]
-        pull_requests = []
-        for pr_edge in issue["timelineItems"]["edges"]:
-            pr = pr_edge["node"]["source"]
-            pull_requests.append({
-                "createdAt": pr["createdAt"],
-                "merged": pr["merged"],
-                "branch": pr["headRefName"]
-            })
-        prompt_event = PromptEvent(issue, pull_requests)
-        prompt_events.append(prompt_event)
+    has_next_page = True
+    end_cursor = None
+
+    while has_next_page:
+        paginated_query = query
+        if end_cursor:
+            paginated_query = query.replace("first: 100", f'first: 100, after: "{end_cursor}"')
+        
+        result = query_github(paginated_query)
+        issues = result["data"]["repository"]["issues"]
+        
+        for edge in issues["edges"]:
+            issue = edge["node"]
+            pull_requests = []
+            for pr_edge in issue["timelineItems"]["edges"]:
+                pr = pr_edge["node"]["source"]
+                pull_requests.append({
+                    "createdAt": pr["createdAt"],
+                    "merged": pr["merged"],
+                    "branch": pr["headRefName"]
+                })
+            prompt_event = PromptEvent(issue, pull_requests)
+            prompt_events.append(prompt_event)
+        
+        has_next_page = issues["pageInfo"]["hasNextPage"]
+        end_cursor = issues["pageInfo"]["endCursor"]
+
     prompt_events.sort(key=lambda x: x.timestamp)
     
     commits_without_prs = get_commits_without_prs()
