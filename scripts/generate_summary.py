@@ -21,6 +21,14 @@ class PromptEvent:
             return self.issue["createdAt"]
 
 
+class ManualEdit:
+    def __init__(self, commit):
+        self.commit = commit
+        self.timestamp = commit["timestamp"]
+        self.message = commit["message"]
+        self.url = commit["url"]
+
+
 def query_github(query):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
@@ -32,10 +40,10 @@ def query_github(query):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
-def render_template(prompt_events):
+def render_template(prompt_events, manual_edits):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
-    return template.render(prompt_events=prompt_events)
+    return template.render(prompt_events=prompt_events, manual_edits=manual_edits)
 
 
 def main():
@@ -69,6 +77,21 @@ def main():
                     }
                 }
             }
+            defaultBranchRef {
+                target {
+                    ... on Commit {
+                        history(first: 100) {
+                            edges {
+                                node {
+                                    message
+                                    committedDate
+                                    url
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     """
@@ -86,8 +109,21 @@ def main():
             })
         prompt_event = PromptEvent(issue, pull_requests)
         prompt_events.append(prompt_event)
-    prompt_events.sort(key=lambda x: x.timestamp)
-    output = render_template(prompt_events)
+
+    manual_edits = []
+    for edge in result["data"]["repository"]["defaultBranchRef"]["target"]["history"]["edges"]:
+        commit = edge["node"]
+        if not any(pr["merged"] for pr in prompt_events if pr.issue["url"] == commit["url"]):
+            manual_edit = ManualEdit({
+                "timestamp": commit["committedDate"],
+                "message": commit["message"],
+                "url": commit["url"]
+            })
+            manual_edits.append(manual_edit)
+
+    all_events = prompt_events + manual_edits
+    all_events.sort(key=lambda x: x.timestamp)
+    output = render_template(prompt_events, manual_edits)
     with open("index.html", "w") as f:
         f.write(output)
 

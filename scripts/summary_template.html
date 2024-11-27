@@ -31,5 +31,17 @@
       </li>
       {% endfor %}
     </ul>
+    <h2>Manual Edits</h2>
+    <ul>
+      {% for edit in manual_edits %}
+      <li>
+        <details>
+          <summary>{{ edit.timestamp }} - {{ edit.message.split('\n')[0] }}</summary>
+          <p>{{ edit.message }}</p>
+          <a href="{{ edit.url }}">View Commit</a>
+        </details>
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>
