@@ -6,6 +6,21 @@ GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 
+class PromptEvent:
+    def __init__(self, issue, pull_requests):
+        self.issue = issue
+        self.pull_requests = pull_requests
+        self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
+        self.timestamp = self.get_timestamp()
+
+    def get_timestamp(self):
+        if self.state == "Merged":
+            merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
+            return min(pr["createdAt"] for pr in merged_prs)
+        else:
+            return self.issue["createdAt"]
+
+
 def query_github(query):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
@@ -17,10 +32,10 @@ def query_github(query):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
-def render_template(issues):
+def render_template(prompt_events):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
-    return template.render(issues=issues)
+    return template.render(prompt_events=prompt_events)
 
 
 def main():
@@ -58,7 +73,7 @@ def main():
     }
     """
     result = query_github(query)
-    issues = []
+    prompt_events = []
     for edge in result["data"]["repository"]["issues"]["edges"]:
         issue = edge["node"]
         pull_requests = []
@@ -69,15 +84,10 @@ def main():
                 "merged": pr["merged"],
                 "branch": pr["headRefName"]
             })
-        issues.append({
-            "title": issue["title"],
-            "createdAt": issue["createdAt"],
-            "url": issue["url"],
-            "description": issue["body"],
-            "pull_requests": pull_requests
-        })
-    issues.sort(key=lambda x: x["createdAt"])
-    output = render_template(issues)
+        prompt_event = PromptEvent(issue, pull_requests)
+        prompt_events.append(prompt_event)
+    prompt_events.sort(key=lambda x: x.timestamp)
+    output = render_template(prompt_events)
     with open("index.html", "w") as f:
         f.write(output)
 
