@@ -19,6 +19,7 @@
         <details>
           <summary>{{ issue.title }}</summary>
           <p>{{ issue.description }}</p>
+          <a href="{{ issue.url }}">View Issue</a>
         </details>
         <ul>
           {% for pr in issue.pull_requests %}
