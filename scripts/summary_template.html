@@ -18,7 +18,7 @@
       <li class="{% if event.state == 'Unmerged' %}dimmed{% endif %}">
         <details>
           <summary>{{ event.issue.title }}</summary>
-          <p>{{ event.issue.body }}</p>
+          <div class="markdown-body">{{ event.issue.body }}</div>
         </details>
         <ul>
           {% for pr in event.pull_requests %}
