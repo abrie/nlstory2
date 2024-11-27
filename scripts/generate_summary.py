@@ -32,10 +32,52 @@ def query_github(query):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
-def render_template(prompt_events):
+def render_template(prompt_events, commits_without_prs):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
-    return template.render(prompt_events=prompt_events)
+    return template.render(prompt_events=prompt_events, commits_without_prs=commits_without_prs)
+
+
+def get_commits_without_prs():
+    query = """
+    {
+        repository(owner: "abrie", name: "nl12") {
+            defaultBranchRef {
+                target {
+                    ... on Commit {
+                        history(first: 100) {
+                            edges {
+                                node {
+                                    oid
+                                    message
+                                    committedDate
+                                    associatedPullRequests(first: 1) {
+                                        edges {
+                                            node {
+                                                number
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    result = query_github(query)
+    commits_without_prs = []
+    for edge in result["data"]["repository"]["defaultBranchRef"]["target"]["history"]["edges"]:
+        commit = edge["node"]
+        if not commit["associatedPullRequests"]["edges"]:
+            commits_without_prs.append({
+                "oid": commit["oid"],
+                "message": commit["message"],
+                "committedDate": commit["committedDate"]
+            })
+    return commits_without_prs
 
 
 def main():
@@ -87,7 +129,10 @@ def main():
         prompt_event = PromptEvent(issue, pull_requests)
         prompt_events.append(prompt_event)
     prompt_events.sort(key=lambda x: x.timestamp)
-    output = render_template(prompt_events)
+    
+    commits_without_prs = get_commits_without_prs()
+    
+    output = render_template(prompt_events, commits_without_prs)
     with open("index.html", "w") as f:
         f.write(output)
 

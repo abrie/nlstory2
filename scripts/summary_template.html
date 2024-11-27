@@ -31,5 +31,13 @@
       </li>
       {% endfor %}
     </ul>
+    <h2>Commits without Pull Requests</h2>
+    <ul>
+      {% for commit in commits_without_prs %}
+      <li class="no-pr">
+        {{ commit.committedDate }} - {{ commit.message }}
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>
