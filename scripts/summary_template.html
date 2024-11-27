@@ -31,5 +31,17 @@
       </li>
       {% endfor %}
     </ul>
+    <h2>Commits to Main Trunk</h2>
+    <ul>
+      {% for commit in commits %}
+      <li>
+        <details>
+          <summary>{{ commit.message }}</summary>
+          <p>Author: {{ commit.author }}</p>
+          <p>Date: {{ commit.committedDate }}</p>
+        </details>
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>

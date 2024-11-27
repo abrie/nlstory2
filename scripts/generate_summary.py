@@ -54,6 +54,23 @@ def main():
                     }
                 }
             }
+            defaultBranchRef {
+                target {
+                    ... on Commit {
+                        history(first: 100) {
+                            edges {
+                                node {
+                                    message
+                                    committedDate
+                                    author {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     """
@@ -76,8 +93,17 @@ def main():
             "description": issue["body"],
             "pull_requests": pull_requests
         })
+    commits = []
+    for edge in result["data"]["repository"]["defaultBranchRef"]["target"]["history"]["edges"]:
+        commit = edge["node"]
+        commits.append({
+            "message": commit["message"],
+            "committedDate": commit["committedDate"],
+            "author": commit["author"]["name"]
+        })
     issues.sort(key=lambda x: x["createdAt"])
-    output = render_template(issues)
+    commits.sort(key=lambda x: x["committedDate"])
+    output = render_template({"issues": issues, "commits": commits})
     with open("index.html", "w") as f:
         f.write(output)
 
