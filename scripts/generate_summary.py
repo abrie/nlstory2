@@ -21,6 +21,12 @@ class PromptEvent:
             return self.issue["createdAt"]
 
 
+class ManualEdit:
+    def __init__(self, commit):
+        self.commit = commit
+        self.timestamp = commit["committedDate"]
+
+
 def query_github(query):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
@@ -69,6 +75,21 @@ def main():
                     }
                 }
             }
+            defaultBranchRef {
+                target {
+                    ... on Commit {
+                        history(first: 100) {
+                            edges {
+                                node {
+                                    committedDate
+                                    message
+                                    url
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     """
@@ -86,6 +107,14 @@ def main():
             })
         prompt_event = PromptEvent(issue, pull_requests)
         prompt_events.append(prompt_event)
+
+    commits = result["data"]["repository"]["defaultBranchRef"]["target"]["history"]["edges"]
+    for commit_edge in commits:
+        commit = commit_edge["node"]
+        if not any(pr["merged"] for pr in pull_requests):
+            manual_edit = ManualEdit(commit)
+            prompt_events.append(manual_edit)
+
     prompt_events.sort(key=lambda x: x.timestamp)
     output = render_template(prompt_events)
     with open("index.html", "w") as f:
