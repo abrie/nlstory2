@@ -39,6 +39,7 @@ def render_template(events):
 
 
 def get_main_trunk_commits():
+    print("Querying GitHub API for main trunk commits...")
     query = """
     query($cursor: String) {
         repository(owner: "abrie", name: "nl12") {
@@ -80,6 +81,7 @@ def get_main_trunk_commits():
                     "message": commit["message"],
                     "url": commit["url"]
                 })
+        print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
             break
         cursor = history["pageInfo"]["endCursor"]
@@ -88,6 +90,7 @@ def get_main_trunk_commits():
 
 
 def main():
+    print("Querying GitHub API for issues...")
     query = """
     query($cursor: String) {
         repository(owner: "abrie", name: "nl12") {
@@ -142,6 +145,7 @@ def main():
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)
+        print(f"Processed a page of issues, cursor: {cursor}")
         if not issues["pageInfo"]["hasNextPage"]:
             break
         cursor = issues["pageInfo"]["endCursor"]
@@ -152,9 +156,12 @@ def main():
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
     
+    print("Generating template...")
     output = render_template(events)
-    with open("index.html", "w") as f:
+    output_file_path = os.path.abspath("index.html")
+    with open(output_file_path, "w") as f:
         f.write(output)
+    print(f"Summary page generated successfully. Output file: {output_file_path}")
 
 
 if __name__ == "__main__":
