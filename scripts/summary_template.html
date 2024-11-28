@@ -31,5 +31,13 @@
       </li>
       {% endfor %}
     </ul>
+    <h2>Main Trunk Commits Not Associated with a Pull Request</h2>
+    <ul>
+      {% for commit in main_trunk_commits %}
+      <li>
+        {{ commit.committedDate }} - <a href="{{ commit.url }}">{{ commit.message }}</a>
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>
