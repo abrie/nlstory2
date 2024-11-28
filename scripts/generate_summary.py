@@ -80,6 +80,7 @@ def get_main_trunk_commits():
                     "message": commit["message"],
                     "url": commit["url"]
                 })
+        print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
             break
         cursor = history["pageInfo"]["endCursor"]
@@ -142,6 +143,7 @@ def main():
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)
+        print(f"Processed a page of issues, cursor: {cursor}")
         if not issues["pageInfo"]["hasNextPage"]:
             break
         cursor = issues["pageInfo"]["endCursor"]
