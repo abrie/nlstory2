@@ -11,15 +11,7 @@ class PromptEvent:
         self.issue = issue
         self.pull_requests = pull_requests
         self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
-        self.timestamp = self.get_timestamp()
-
-    def get_timestamp(self):
-        if self.state == "Merged":
-            merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
-            return min(pr["createdAt"] for pr in merged_prs)
-        else:
-            return self.issue["createdAt"]
-
+        self.timestamp = issue["createdAt"] if issue else None
 
 def query_github(query, variables=None):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
@@ -77,15 +69,14 @@ def get_main_trunk_commits():
             commit = edge["node"]
             if commit["associatedPullRequests"]["totalCount"] == 0:
                 commits.append({
-                    "committedDate": commit["committedDate"],
                     "message": commit["message"],
-                    "url": commit["url"]
+                    "url": commit["url"],
+                    "timestamp": commit["committedDate"]
                 })
         print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
             break
         cursor = history["pageInfo"]["endCursor"]
-    commits.sort(key=lambda x: x["committedDate"])
     return commits
 
 
@@ -139,7 +130,6 @@ def main():
             for pr_edge in issue["timelineItems"]["edges"]:
                 pr = pr_edge["node"]["source"]
                 pull_requests.append({
-                    "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
                     "branch": pr["headRefName"]
                 })
@@ -149,12 +139,11 @@ def main():
         if not issues["pageInfo"]["hasNextPage"]:
             break
         cursor = issues["pageInfo"]["endCursor"]
-    prompt_events.sort(key=lambda x: x.timestamp)
     
     main_trunk_commits = get_main_trunk_commits()
     
     events = prompt_events + main_trunk_commits
-    events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
+    events.sort(key=lambda x: x.timestamp, reverse=True)
     
     print("Generating template...")
     output = render_template(events)
