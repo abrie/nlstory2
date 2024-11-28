@@ -19,7 +19,7 @@
         {% if event.issue %}
         <details>
           <summary>{{ event.issue.title }}</summary>
-          <p>{{ event.issue.body }}</p>
+          <div>{{ event.issue.body | safe }}</div>
           <ul>
             {% for pr in event.pull_requests %}
             <li class="{% if not pr.merged %}dimmed{% endif %}">

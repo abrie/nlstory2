@@ -1,6 +1,7 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+from marked import marked
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -135,9 +136,11 @@ def main():
         issues = result["data"]["repository"]["issues"]
         for edge in issues["edges"]:
             issue = edge["node"]
+            issue["body"] = marked(issue["body"])
             pull_requests = []
             for pr_edge in issue["timelineItems"]["edges"]:
                 pr = pr_edge["node"]["source"]
+                pr["title"] = marked(pr["title"])
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
