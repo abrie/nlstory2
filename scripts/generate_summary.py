@@ -1,6 +1,7 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import mistune
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -32,9 +33,17 @@ def query_github(query, variables=None):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
+def convert_markdown_to_html(markdown_text):
+    markdown = mistune.create_markdown()
+    return markdown(markdown_text)
+
+
 def render_template(events):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
+    for event in events:
+        if isinstance(event, PromptEvent):
+            event.issue["body"] = convert_markdown_to_html(event.issue["body"])
     return template.render(events=events)
 
 
