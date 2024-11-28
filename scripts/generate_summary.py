@@ -158,9 +158,10 @@ def main():
     
     print("Generating template...")
     output = render_template(events)
-    with open("index.html", "w") as f:
+    output_file_path = os.path.abspath("index.html")
+    with open(output_file_path, "w") as f:
         f.write(output)
-    print("Summary page generated successfully.")
+    print(f"Summary page generated successfully. Output file: {output_file_path}")
 
 
 if __name__ == "__main__":
