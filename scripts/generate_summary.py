@@ -1,6 +1,7 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import markdown
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -36,6 +37,10 @@ def render_template(events):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
     return template.render(events=events)
+
+
+def process_markdown(markdown_text):
+    return markdown.markdown(markdown_text)
 
 
 def get_main_trunk_commits():
@@ -135,6 +140,7 @@ def main():
         issues = result["data"]["repository"]["issues"]
         for edge in issues["edges"]:
             issue = edge["node"]
+            issue["body"] = process_markdown(issue["body"])
             pull_requests = []
             for pr_edge in issue["timelineItems"]["edges"]:
                 pr = pr_edge["node"]["source"]

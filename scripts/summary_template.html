@@ -19,7 +19,7 @@
         {% if event.issue %}
         <details>
           <summary>{{ event.issue.title }}</summary>
-          <p>{{ event.issue.body }}</p>
+          <p>{{ event.issue.body | safe }}</p>
         </details>
         <ul>
           {% for pr in event.pull_requests %}
