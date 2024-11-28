@@ -21,10 +21,10 @@ class PromptEvent:
             return self.issue["createdAt"]
 
 
-def query_github(query):
+def query_github(query, variables=None):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
-                             "query": query}, headers=headers)
+                             "query": query, "variables": variables}, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -40,9 +40,13 @@ def render_template(prompt_events):
 
 def main():
     query = """
-    {
+    query($cursor: String) {
         repository(owner: "abrie", name: "nl12") {
-            issues(first: 100) {
+            issues(first: 100, after: $cursor) {
+                pageInfo {
+                    endCursor
+                    hasNextPage
+                }
                 edges {
                     node {
                         title
@@ -72,20 +76,26 @@ def main():
         }
     }
     """
-    result = query_github(query)
+    cursor = None
     prompt_events = []
-    for edge in result["data"]["repository"]["issues"]["edges"]:
-        issue = edge["node"]
-        pull_requests = []
-        for pr_edge in issue["timelineItems"]["edges"]:
-            pr = pr_edge["node"]["source"]
-            pull_requests.append({
-                "createdAt": pr["createdAt"],
-                "merged": pr["merged"],
-                "branch": pr["headRefName"]
-            })
-        prompt_event = PromptEvent(issue, pull_requests)
-        prompt_events.append(prompt_event)
+    while True:
+        result = query_github(query, {"cursor": cursor})
+        issues = result["data"]["repository"]["issues"]
+        for edge in issues["edges"]:
+            issue = edge["node"]
+            pull_requests = []
+            for pr_edge in issue["timelineItems"]["edges"]:
+                pr = pr_edge["node"]["source"]
+                pull_requests.append({
+                    "createdAt": pr["createdAt"],
+                    "merged": pr["merged"],
+                    "branch": pr["headRefName"]
+                })
+            prompt_event = PromptEvent(issue, pull_requests)
+            prompt_events.append(prompt_event)
+        if not issues["pageInfo"]["hasNextPage"]:
+            break
+        cursor = issues["pageInfo"]["endCursor"]
     prompt_events.sort(key=lambda x: x.timestamp)
     output = render_template(prompt_events)
     with open("index.html", "w") as f:
