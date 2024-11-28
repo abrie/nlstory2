@@ -24,13 +24,13 @@
         <ul>
           {% for pr in event.pull_requests %}
           <li class="{% if not pr.merged %}dimmed{% endif %}">
-            {{ pr.createdAt }} - {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
+            {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
             <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}">Branch: {{ pr.branch }}</a>
           </li>
           {% endfor %}
         </ul>
         {% else %}
-        {{ event.committedDate }} - <a href="{{ event.url }}">{{ event.message }}</a>
+        <a href="{{ event.url }}">{{ event.message }}</a>
         {% endif %}
       </li>
       {% endfor %}
