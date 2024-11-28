@@ -32,10 +32,10 @@ def query_github(query, variables=None):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
-def render_template(prompt_events, main_trunk_commits):
+def render_template(events):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
-    return template.render(prompt_events=prompt_events, main_trunk_commits=main_trunk_commits)
+    return template.render(events=events)
 
 
 def get_main_trunk_commits():
@@ -149,7 +149,10 @@ def main():
     
     main_trunk_commits = get_main_trunk_commits()
     
-    output = render_template(prompt_events, main_trunk_commits)
+    events = prompt_events + main_trunk_commits
+    events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
+    
+    output = render_template(events)
     with open("index.html", "w") as f:
         f.write(output)
 
