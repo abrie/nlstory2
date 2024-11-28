@@ -20,15 +20,15 @@
         <details>
           <summary>{{ event.issue.title }}</summary>
           <p>{{ event.issue.body }}</p>
+          <ul>
+            {% for pr in event.pull_requests %}
+            <li class="{% if not pr.merged %}dimmed{% endif %}">
+              {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
+              <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}">Branch: {{ pr.branch }}</a>
+            </li>
+            {% endfor %}
+          </ul>
         </details>
-        <ul>
-          {% for pr in event.pull_requests %}
-          <li class="{% if not pr.merged %}dimmed{% endif %}">
-            {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
-            <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}">Branch: {{ pr.branch }}</a>
-          </li>
-          {% endfor %}
-        </ul>
         {% else %}
         <a href="{{ event.url }}">{{ event.message }}</a>
         {% endif %}
