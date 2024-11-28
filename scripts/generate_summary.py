@@ -32,10 +32,59 @@ def query_github(query, variables=None):
             f"Query failed to run by returning code of {response.status_code}. {query}")
 
 
-def render_template(prompt_events):
+def render_template(prompt_events, main_trunk_commits):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
-    return template.render(prompt_events=prompt_events)
+    return template.render(prompt_events=prompt_events, main_trunk_commits=main_trunk_commits)
+
+
+def get_main_trunk_commits():
+    query = """
+    query($cursor: String) {
+        repository(owner: "abrie", name: "nl12") {
+            ref(qualifiedName: "refs/heads/main") {
+                target {
+                    ... on Commit {
+                        history(first: 100, after: $cursor) {
+                            pageInfo {
+                                endCursor
+                                hasNextPage
+                            }
+                            edges {
+                                node {
+                                    committedDate
+                                    message
+                                    url
+                                    associatedPullRequests(first: 1) {
+                                        totalCount
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    cursor = None
+    commits = []
+    while True:
+        result = query_github(query, {"cursor": cursor})
+        history = result["data"]["repository"]["ref"]["target"]["history"]
+        for edge in history["edges"]:
+            commit = edge["node"]
+            if commit["associatedPullRequests"]["totalCount"] == 0:
+                commits.append({
+                    "committedDate": commit["committedDate"],
+                    "message": commit["message"],
+                    "url": commit["url"]
+                })
+        if not history["pageInfo"]["hasNextPage"]:
+            break
+        cursor = history["pageInfo"]["endCursor"]
+    commits.sort(key=lambda x: x["committedDate"])
+    return commits
 
 
 def main():
@@ -97,7 +146,10 @@ def main():
             break
         cursor = issues["pageInfo"]["endCursor"]
     prompt_events.sort(key=lambda x: x.timestamp)
-    output = render_template(prompt_events)
+    
+    main_trunk_commits = get_main_trunk_commits()
+    
+    output = render_template(prompt_events, main_trunk_commits)
     with open("index.html", "w") as f:
         f.write(output)
 
