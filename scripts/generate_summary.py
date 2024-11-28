@@ -39,6 +39,7 @@ def render_template(events):
 
 
 def get_main_trunk_commits():
+    print("Querying GitHub API for main trunk commits...")
     query = """
     query($cursor: String) {
         repository(owner: "abrie", name: "nl12") {
@@ -89,6 +90,7 @@ def get_main_trunk_commits():
 
 
 def main():
+    print("Querying GitHub API for issues...")
     query = """
     query($cursor: String) {
         repository(owner: "abrie", name: "nl12") {
@@ -154,9 +156,11 @@ def main():
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
     
+    print("Generating template...")
     output = render_template(events)
     with open("index.html", "w") as f:
         f.write(output)
+    print("Summary page generated successfully.")
 
 
 if __name__ == "__main__":
