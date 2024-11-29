@@ -104,7 +104,7 @@ def main():
                         title
                         createdAt
                         url
-                        body
+                        bodyHtml
                         timelineItems(itemTypes: CROSS_REFERENCED_EVENT, first: 100) {
                             edges {
                                 node {
