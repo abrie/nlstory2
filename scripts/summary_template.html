@@ -30,7 +30,11 @@
           </ul>
         </details>
         {% else %}
-        <a href="{{ event.url }}">{{ event.message }}</a>
+        <details>
+          <summary>{{ event.headlineHTML | safe }}</summary>
+          <p>{{ event.messageBodyHTML | safe }}</p>
+          <a href="{{ event.url }}">View Commit</a>
+        </details>
         {% endif %}
       </li>
       {% endfor %}
