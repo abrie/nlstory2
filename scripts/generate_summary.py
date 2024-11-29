@@ -54,7 +54,7 @@ def get_main_trunk_commits():
                             edges {
                                 node {
                                     committedDate
-                                    headlineHTML
+                                    messageHeadlineHTML
                                     messageBodyHTML
                                     url
                                     associatedPullRequests(first: 1) {
@@ -79,7 +79,7 @@ def get_main_trunk_commits():
             if commit["associatedPullRequests"]["totalCount"] == 0:
                 commits.append({
                     "committedDate": commit["committedDate"],
-                    "headlineHTML": commit["headlineHTML"],
+                    "messageHeadlineHTML": commit["messageHeadlineHTML"],
                     "messageBodyHTML": commit["messageBodyHTML"],
                     "url": commit["url"]
                 })

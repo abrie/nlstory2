@@ -31,7 +31,7 @@
         </details>
         {% else %}
         <details>
-          <summary>{{ event.headlineHTML | safe }}</summary>
+          <summary>{{ event.messageHeadlineHTML | safe }}</summary>
           <p>{{ event.messageBodyHTML | safe }}</p>
           <a href="{{ event.url }}">View Commit</a>
         </details>
