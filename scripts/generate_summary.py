@@ -91,7 +91,7 @@ def get_main_trunk_commits():
     return commits
 
 
-def main():
+def query_issues_and_prs():
     print("Querying GitHub API for issues...")
     query = """
     query($cursor: String) {
@@ -152,7 +152,11 @@ def main():
             break
         cursor = issues["pageInfo"]["endCursor"]
     prompt_events.sort(key=lambda x: x.timestamp)
-    
+    return prompt_events
+
+
+def main():
+    prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
     
     events = prompt_events + main_trunk_commits
