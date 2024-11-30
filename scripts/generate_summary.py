@@ -1,5 +1,7 @@
 import os
 import requests
+import shutil
+import subprocess
 from jinja2 import Environment, FileSystemLoader
 
 GITHUB_API_URL = "https://api.github.com/graphql"
@@ -155,12 +157,40 @@ def query_issues_and_prs():
     return prompt_events
 
 
+def checkout_and_build(event_id):
+    temp_dir = f"/tmp/{event_id}"
+    builds_dir = "builds"
+    dist_dir = os.path.join(builds_dir, event_id)
+
+    # Clone the repository
+    subprocess.run(["git", "clone", "--depth", "1", "--branch", event_id, "https://github.com/abrie/nl12.git", temp_dir])
+
+    # Install dependencies and build
+    subprocess.run(["yarn", "install"], cwd=temp_dir)
+    subprocess.run(["npx", "vite", "build"], cwd=temp_dir)
+
+    # Copy the dist folder
+    shutil.copytree(os.path.join(temp_dir, "dist"), dist_dir)
+
+    # Remove the temporary directory
+    shutil.rmtree(temp_dir)
+
+
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
     
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
+    
+    # Create builds directory
+    if not os.path.exists("builds"):
+        os.makedirs("builds")
+
+    # Checkout and build for each event
+    for event in events:
+        event_id = event.issue["url"].split("/")[-1] if isinstance(event, PromptEvent) else event["url"].split("/")[-1]
+        checkout_and_build(event_id)
     
     print("Generating template...")
     output = render_template(events)
