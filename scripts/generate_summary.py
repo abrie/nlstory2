@@ -1,6 +1,9 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import subprocess
+import shutil
+import tempfile
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -155,12 +158,56 @@ def query_issues_and_prs():
     return prompt_events
 
 
+def clone_repository():
+    temp_dir = tempfile.mkdtemp()
+    repo_url = "https://github.com/abrie/nl12.git"
+    subprocess.run(["git", "clone", repo_url, temp_dir], check=True)
+    return temp_dir
+
+
+def checkout_commit(repo_dir, commit_id):
+    subprocess.run(["git", "checkout", commit_id], cwd=repo_dir, check=True)
+
+
+def build_project(repo_dir):
+    subprocess.run(["yarn", "install"], cwd=repo_dir, check=True)
+    subprocess.run(["npx", "vite", "build"], cwd=repo_dir, check=True)
+
+
+def copy_dist_folder(repo_dir, commit_id):
+    dist_dir = os.path.join(repo_dir, "dist")
+    builds_dir = os.path.abspath("builds")
+    os.makedirs(builds_dir, exist_ok=True)
+    target_dir = os.path.join(builds_dir, commit_id)
+    shutil.copytree(dist_dir, target_dir)
+
+
+def clean_up(repo_dir):
+    shutil.rmtree(os.path.join(repo_dir, "node_modules"))
+    shutil.rmtree(os.path.join(repo_dir, "dist"))
+    subprocess.run(["git", "checkout", "main"], cwd=repo_dir, check=True)
+
+
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
     
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
+    
+    print("Cloning repository...")
+    repo_dir = clone_repository()
+    
+    for event in events:
+        commit_id = event.issue["url"].split("/")[-1] if isinstance(event, PromptEvent) else event["url"].split("/")[-1]
+        print(f"Processing commit {commit_id}...")
+        checkout_commit(repo_dir, commit_id)
+        build_project(repo_dir)
+        copy_dist_folder(repo_dir, commit_id)
+        clean_up(repo_dir)
+    
+    print("Removing cloned repository...")
+    shutil.rmtree(repo_dir)
     
     print("Generating template...")
     output = render_template(events)
