@@ -20,6 +20,16 @@ class PromptEvent:
         else:
             return self.issue["createdAt"]
 
+    @property
+    def Headline(self):
+        return self.issue["title"]
+
+    @property
+    def Body(self):
+        body = self.issue["bodyHTML"]
+        pr_summaries = "\n".join([f"<p>{pr['title']}</p>" for pr in self.pull_requests])
+        return f"{body}\n{pr_summaries}"
+
 
 class CommitEvent:
     def __init__(self, commit):
@@ -32,6 +42,14 @@ class CommitEvent:
 
     def get_commit_hash(self):
         return self.commit["url"].split("/")[-1]
+
+    @property
+    def Headline(self):
+        return self.commit["messageHeadlineHTML"]
+
+    @property
+    def Body(self):
+        return self.commit["messageBodyHTML"]
 
 
 def query_github(query, variables=None):
