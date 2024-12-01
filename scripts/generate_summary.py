@@ -20,6 +20,17 @@ class PromptEvent:
         else:
             return self.issue["createdAt"]
 
+    def get_git_command(self):
+        if self.state == "Merged":
+            merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
+            commit_id = merged_prs[0]["commitId"]
+            return f"git checkout {commit_id}"
+        else:
+            return None
+
+    def get_copy_button(self):
+        return '<button onclick="copyToClipboard()">Copy</button>'
+
 
 def query_github(query, variables=None):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
@@ -143,7 +154,8 @@ def query_issues_and_prs():
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
-                    "branch": pr["headRefName"]
+                    "branch": pr["headRefName"],
+                    "commitId": pr["commitId"]
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)

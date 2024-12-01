@@ -9,6 +9,19 @@
       ul, li {
         list-style-type: none;
       }
+      .copy-button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 12px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
     </style>
   </head>
   <body>
@@ -25,6 +38,10 @@
             <li class="{% if not pr.merged %}dimmed{% endif %}">
               {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
               <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}">Branch: {{ pr.branch }}</a>
+              {% if pr.merged %}
+              <p>Git Command: {{ event.get_git_command() }}</p>
+              <button class="copy-button" onclick="copyToClipboard('{{ event.get_git_command() }}')">Copy</button>
+              {% endif %}
             </li>
             {% endfor %}
           </ul>
@@ -34,10 +51,21 @@
           <summary>{{ event.messageHeadlineHTML | safe }}</summary>
           <p>{{ event.messageBodyHTML | safe }}</p>
           <a href="{{ event.url }}">View Commit</a>
+          <p>Git Command: {{ event.get_git_command() }}</p>
+          <button class="copy-button" onclick="copyToClipboard('{{ event.get_git_command() }}')">Copy</button>
         </details>
         {% endif %}
       </li>
       {% endfor %}
     </ul>
+    <script>
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+          console.log('Copying to clipboard was successful!');
+        }, function(err) {
+          console.error('Could not copy text: ', err);
+        });
+      }
+    </script>
   </body>
 </html>
