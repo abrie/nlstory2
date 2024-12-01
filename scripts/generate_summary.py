@@ -21,6 +21,19 @@ class PromptEvent:
             return self.issue["createdAt"]
 
 
+class CommitEvent:
+    def __init__(self, commit):
+        self.commit = commit
+        self.timestamp = self.get_timestamp()
+        self.commit_hash = self.get_commit_hash()
+
+    def get_timestamp(self):
+        return self.commit["committedDate"]
+
+    def get_commit_hash(self):
+        return self.commit["url"].split("/")[-1]
+
+
 def query_github(query, variables=None):
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
@@ -77,17 +90,17 @@ def get_main_trunk_commits():
         for edge in history["edges"]:
             commit = edge["node"]
             if commit["associatedPullRequests"]["totalCount"] == 0:
-                commits.append({
+                commits.append(CommitEvent({
                     "committedDate": commit["committedDate"],
                     "messageHeadlineHTML": commit["messageHeadlineHTML"],
                     "messageBodyHTML": commit["messageBodyHTML"],
                     "url": commit["url"]
-                })
+                }))
         print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
             break
         cursor = history["pageInfo"]["endCursor"]
-    commits.sort(key=lambda x: x["committedDate"])
+    commits.sort(key=lambda x: x.timestamp)
     return commits
 
 
@@ -160,7 +173,7 @@ def main():
     main_trunk_commits = get_main_trunk_commits()
     
     events = prompt_events + main_trunk_commits
-    events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x["committedDate"])
+    events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x.timestamp)
     
     print("Generating template...")
     output = render_template(events)
