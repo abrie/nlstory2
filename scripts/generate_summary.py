@@ -12,6 +12,7 @@ class PromptEvent:
         self.pull_requests = pull_requests
         self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
         self.timestamp = self.get_timestamp()
+        self.commit_hash = self.get_commit_hash()
 
     def get_timestamp(self):
         if self.state == "Merged":
@@ -19,6 +20,13 @@ class PromptEvent:
             return min(pr["createdAt"] for pr in merged_prs)
         else:
             return self.issue["createdAt"]
+
+    def get_commit_hash(self):
+        if self.state == "Merged":
+            merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
+            return merged_prs[0]["commitHash"] if merged_prs else None
+        else:
+            return None
 
 
 def query_github(query, variables=None):
@@ -35,6 +43,11 @@ def query_github(query, variables=None):
 def render_template(events):
     env = Environment(loader=FileSystemLoader('scripts'))
     template = env.get_template('summary_template.html')
+    for event in events:
+        if isinstance(event, PromptEvent) and event.commit_hash:
+            event.git_command = f"git checkout {event.commit_hash}"
+        elif "commit_hash" in event:
+            event["git_command"] = f"git checkout {event['commit_hash']}"
     return template.render(events=events)
 
 
@@ -57,6 +70,7 @@ def get_main_trunk_commits():
                                     messageHeadlineHTML
                                     messageBodyHTML
                                     url
+                                    oid
                                     associatedPullRequests(first: 1) {
                                         totalCount
                                     }
@@ -81,7 +95,8 @@ def get_main_trunk_commits():
                     "committedDate": commit["committedDate"],
                     "messageHeadlineHTML": commit["messageHeadlineHTML"],
                     "messageBodyHTML": commit["messageBodyHTML"],
-                    "url": commit["url"]
+                    "url": commit["url"],
+                    "commit_hash": commit["oid"]
                 })
         print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
@@ -118,6 +133,13 @@ def query_issues_and_prs():
                                                 url
                                                 merged
                                                 headRefName
+                                                commits(last: 1) {
+                                                    nodes {
+                                                        commit {
+                                                            oid
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -143,7 +165,8 @@ def query_issues_and_prs():
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
-                    "branch": pr["headRefName"]
+                    "branch": pr["headRefName"],
+                    "commitHash": pr["commits"]["nodes"][0]["commit"]["oid"] if pr["commits"]["nodes"] else None
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)

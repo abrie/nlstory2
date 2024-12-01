@@ -28,12 +28,20 @@
             </li>
             {% endfor %}
           </ul>
+          {% if event.commit_hash %}
+          <p>Git Command: <code>{{ event.git_command }}</code></p>
+          <button onclick="navigator.clipboard.writeText('{{ event.git_command }}')">Copy Command</button>
+          {% endif %}
         </details>
         {% else %}
         <details>
           <summary>{{ event.messageHeadlineHTML | safe }}</summary>
           <p>{{ event.messageBodyHTML | safe }}</p>
           <a href="{{ event.url }}">View Commit</a>
+          {% if event.commit_hash %}
+          <p>Git Command: <code>{{ event.git_command }}</code></p>
+          <button onclick="navigator.clipboard.writeText('{{ event.git_command }}')">Copy Command</button>
+          {% endif %}
         </details>
         {% endif %}
       </li>
