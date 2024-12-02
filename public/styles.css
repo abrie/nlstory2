@@ -1,3 +1,8 @@
 .dimmed {
   opacity: 0.5;
 }
+
+.abbreviated-oid {
+  font-family: monospace;
+  font-size: small;
+}
