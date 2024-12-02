@@ -4,6 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 import subprocess
 import shutil
 import tempfile
+import argparse
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -221,6 +222,10 @@ def build_project(oid, abbreviatedOid):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate summary")
+    parser.add_argument("--build-significant-steps", action="store_true", help="Toggle building of significant steps")
+    args = parser.parse_args()
+
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
 
@@ -228,12 +233,13 @@ def main():
     events.sort(key=lambda x: x.timestamp if isinstance(
         x, PromptEvent) else x.timestamp)
 
-    os.makedirs("builds", exist_ok=True)
-    for event in events:
-        if isinstance(event, PromptEvent) and event.state == "Merged":
-            build_project(event.oid, event.abbreviatedOid)
-        elif isinstance(event, CommitEvent):
-            build_project(event.oid, event.abbreviatedOid)
+    if args.build_significant_steps:
+        os.makedirs("builds", exist_ok=True)
+        for event in events:
+            if isinstance(event, PromptEvent) and event.state == "Merged":
+                build_project(event.oid, event.abbreviatedOid)
+            elif isinstance(event, CommitEvent):
+                build_project(event.oid, event.abbreviatedOid)
 
     print("Generating template...")
     output = render_template(events)
