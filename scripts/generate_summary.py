@@ -196,17 +196,21 @@ def query_issues_and_prs():
 
 
 def build_project(temp_dir, oid, abbreviatedOid):
-    subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
-    node_modules_path = os.path.join(temp_dir, "node_modules")
-    dist_path = os.path.join(temp_dir, "dist")
-    if os.path.exists(node_modules_path):
-        shutil.rmtree(node_modules_path)
-    if os.path.exists(dist_path):
-        shutil.rmtree(dist_path)
-    subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
-    subprocess.run(["npx", "vite", "build"], cwd=temp_dir, check=True)
-    build_output_path = os.path.join("builds", abbreviatedOid)
-    shutil.move(dist_path, build_output_path)
+    try:
+        subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
+        node_modules_path = os.path.join(temp_dir, "node_modules")
+        dist_path = os.path.join(temp_dir, "dist")
+        if os.path.exists(node_modules_path):
+            shutil.rmtree(node_modules_path)
+        if os.path.exists(dist_path):
+            shutil.rmtree(dist_path)
+        subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
+        subprocess.run(["npx", "vite", "build"], cwd=temp_dir, check=True)
+        build_output_path = os.path.join("builds", abbreviatedOid)
+        shutil.move(dist_path, build_output_path)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during build for {abbreviatedOid}: {e}")
+        return
 
 
 def main():
