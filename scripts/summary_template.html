@@ -20,6 +20,7 @@
         <p>{{ event.body | safe }}</p>
         <a href="{{ event.url }}">View Commit</a>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+        <a href="/builds/{{ event.abbreviatedOid }}">View Build</a>
       </details>
       {% endmacro %}
 
@@ -36,6 +37,7 @@
           {% endfor %}
         </ul>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+        <a href="/builds/{{ event.abbreviatedOid }}">View Build</a>
       </details>
       {% endmacro %}
 
