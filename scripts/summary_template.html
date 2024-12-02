@@ -16,8 +16,8 @@
     <ul>
       {% macro commit_event_macro(event) %}
       <details>
-        <summary>{{ event.messageHeadlineHTML | safe }}</summary>
-        <p>{{ event.messageBodyHTML | safe }}</p>
+        <summary>{{ event.headline | safe }}</summary>
+        <p>{{ event.body | safe }}</p>
         <a href="{{ event.url }}">View Commit</a>
       </details>
       {% endmacro %}

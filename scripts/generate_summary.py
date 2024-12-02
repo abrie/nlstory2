@@ -28,6 +28,8 @@ class CommitEvent:
         self.commit = commit
         self.timestamp = self.get_timestamp()
         self.commit_hash = self.get_commit_hash()
+        self.headline = commit['messageHeadlineHTML']
+        self.body = commit['messageBodyHTML']
 
     def get_timestamp(self):
         return self.commit["committedDate"]
