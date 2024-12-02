@@ -14,8 +14,9 @@ class PromptEvent:
         self.timestamp = self.get_timestamp()
         self.headline = issue['titleHTML']
         self.body = issue['bodyHTML']
-        self.oid = issue['mergeCommit']['oid'] if 'mergeCommit' in issue else None
-        self.abbreviatedOid = issue['mergeCommit']['abbreviatedOid'] if 'mergeCommit' in issue else None
+        merged_prs = [pr for pr in pull_requests if pr["merged"]]
+        self.oid = merged_prs[0]["oid"] if merged_prs else None
+        self.abbreviatedOid = merged_prs[0]["abbreviatedOid"] if merged_prs else None
 
     def get_timestamp(self):
         if self.state == "Merged":
