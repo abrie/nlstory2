@@ -210,7 +210,7 @@ def build_project(oid, abbreviatedOid):
         subprocess.run(["yarn", "install", "--silent"],
                        cwd=temp_dir, check=True)
         result = subprocess.run(
-            ["npx", "vite", "build", "--logLevel", "silent"], cwd=temp_dir)
+            ["npx", "vite", "build", "--base", "./", "--logLevel", "silent"], cwd=temp_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
             return
