@@ -12,6 +12,8 @@ class PromptEvent:
         self.pull_requests = pull_requests
         self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
         self.timestamp = self.get_timestamp()
+        self.headline = issue['titleHTML']
+        self.body = issue['bodyHTML']
 
     def get_timestamp(self):
         if self.state == "Merged":
