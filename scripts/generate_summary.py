@@ -197,10 +197,13 @@ def query_issues_and_prs():
 
 
 def build_project(oid, abbreviatedOid):
+    repo_dir = "nl12_repo"
+    if not os.path.exists(repo_dir):
+        subprocess.run(
+            ["git", "clone", "https://github.com/abrie/nl12.git", repo_dir], check=True)
     temp_dir = tempfile.mkdtemp()
     try:
-        subprocess.run(
-            ["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
+        shutil.copytree(repo_dir, temp_dir, dirs_exist_ok=True)
         subprocess.run(["git", "switch", "--detach", oid],
                        cwd=temp_dir, check=True)
         subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
@@ -253,6 +256,9 @@ def main():
         f.write(output)
     print(
         f"Summary page generated successfully. Output file: {output_file_path}")
+
+    if os.path.exists("nl12_repo"):
+        shutil.rmtree("nl12_repo")
 
 
 if __name__ == "__main__":
