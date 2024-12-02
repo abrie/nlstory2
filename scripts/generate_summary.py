@@ -1,6 +1,9 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import subprocess
+import shutil
+import tempfile
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -192,6 +195,20 @@ def query_issues_and_prs():
     return prompt_events
 
 
+def build_project(temp_dir, oid, abbreviatedOid):
+    subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
+    node_modules_path = os.path.join(temp_dir, "node_modules")
+    dist_path = os.path.join(temp_dir, "dist")
+    if os.path.exists(node_modules_path):
+        shutil.rmtree(node_modules_path)
+    if os.path.exists(dist_path):
+        shutil.rmtree(dist_path)
+    subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
+    subprocess.run(["npx", "vite", "build"], cwd=temp_dir, check=True)
+    build_output_path = os.path.join("builds", abbreviatedOid)
+    shutil.move(dist_path, build_output_path)
+
+
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
@@ -199,6 +216,21 @@ def main():
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(
         x, PromptEvent) else x.timestamp)
+
+    if not os.path.exists("builds"):
+        os.makedirs("builds")
+
+    temp_dir = tempfile.mkdtemp()
+    try:
+        subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
+
+        for event in events:
+            if isinstance(event, PromptEvent) and event.state == "Merged":
+                build_project(temp_dir, event.oid, event.abbreviatedOid)
+            elif isinstance(event, CommitEvent):
+                build_project(temp_dir, event.oid, event.abbreviatedOid)
+    finally:
+        shutil.rmtree(temp_dir)
 
     print("Generating template...")
     output = render_template(events)
