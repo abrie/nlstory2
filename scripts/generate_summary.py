@@ -198,18 +198,22 @@ def query_issues_and_prs():
 
 def build_project(oid, abbreviatedOid):
     temp_dir = tempfile.mkdtemp()
+    repo_dir = os.path.join(temp_dir, "nl12")
     try:
-        subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
-        subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
-        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
-        subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
-        result = subprocess.run(["npx", "vite", "build"], cwd=temp_dir)
+        if not os.path.exists(repo_dir):
+            subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", repo_dir], check=True)
+        else:
+            subprocess.run(["git", "fetch"], cwd=repo_dir, check=True)
+        subprocess.run(["git", "checkout", oid], cwd=repo_dir, check=True)
+        subprocess.run(["git", "clean", "-fdx"], cwd=repo_dir, check=True)
+        subprocess.run(["yarn", "install"], cwd=repo_dir, check=True)
+        result = subprocess.run(["npx", "vite", "build"], cwd=repo_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
             return
         build_dir = os.path.join("builds", abbreviatedOid)
         os.makedirs(build_dir, exist_ok=True)
-        dist_dir = os.path.join(temp_dir, "dist")
+        dist_dir = os.path.join(repo_dir, "dist")
         for item in os.listdir(dist_dir):
             s = os.path.join(dist_dir, item)
             d = os.path.join(build_dir, item)
