@@ -14,6 +14,8 @@ class PromptEvent:
         self.timestamp = self.get_timestamp()
         self.headline = issue['titleHTML']
         self.body = issue['bodyHTML']
+        self.oid = issue['mergeCommit']['oid'] if 'mergeCommit' in issue else None
+        self.abbreviatedOid = issue['mergeCommit']['abbreviatedOid'] if 'mergeCommit' in issue else None
 
     def get_timestamp(self):
         if self.state == "Merged":
@@ -30,6 +32,8 @@ class CommitEvent:
         self.commit_hash = self.get_commit_hash()
         self.headline = commit['messageHeadlineHTML']
         self.body = commit['messageBodyHTML']
+        self.oid = commit.get('oid')
+        self.abbreviatedOid = commit.get('abbreviatedOid')
 
     def get_timestamp(self):
         return self.commit["committedDate"]
@@ -74,6 +78,8 @@ def get_main_trunk_commits():
                                     messageHeadlineHTML
                                     messageBodyHTML
                                     url
+                                    oid
+                                    abbreviatedOid
                                     associatedPullRequests(first: 1) {
                                         totalCount
                                     }
@@ -98,7 +104,9 @@ def get_main_trunk_commits():
                     "committedDate": commit["committedDate"],
                     "messageHeadlineHTML": commit["messageHeadlineHTML"],
                     "messageBodyHTML": commit["messageBodyHTML"],
-                    "url": commit["url"]
+                    "url": commit["url"],
+                    "oid": commit["oid"],
+                    "abbreviatedOid": commit["abbreviatedOid"]
                 }))
         print(f"Processed a page of commits, cursor: {cursor}")
         if not history["pageInfo"]["hasNextPage"]:
@@ -135,6 +143,10 @@ def query_issues_and_prs():
                                                 url
                                                 merged
                                                 headRefName
+                                                mergeCommit {
+                                                    oid
+                                                    abbreviatedOid
+                                                }
                                             }
                                         }
                                     }
@@ -160,7 +172,9 @@ def query_issues_and_prs():
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
-                    "branch": pr["headRefName"]
+                    "branch": pr["headRefName"],
+                    "oid": pr["mergeCommit"]["oid"] if pr["merged"] else None,
+                    "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)
