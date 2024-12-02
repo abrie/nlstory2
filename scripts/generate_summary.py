@@ -199,11 +199,15 @@ def query_issues_and_prs():
 def build_project(oid, abbreviatedOid):
     temp_dir = tempfile.mkdtemp()
     try:
-        subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
-        subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
+        subprocess.run(
+            ["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
+        subprocess.run(["git", "switch", "--detach", oid],
+                       cwd=temp_dir, check=True)
         subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
-        subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
-        result = subprocess.run(["npx", "vite", "build"], cwd=temp_dir)
+        subprocess.run(["yarn", "install", "--silent"],
+                       cwd=temp_dir, check=True)
+        result = subprocess.run(
+            ["npx", "vite", "build", "--logLevel", "silent"], cwd=temp_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
             return
@@ -223,7 +227,8 @@ def build_project(oid, abbreviatedOid):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate summary")
-    parser.add_argument("--build-significant-steps", action="store_true", help="Toggle building of significant steps")
+    parser.add_argument("--build-significant-steps", action="store_true",
+                        help="Toggle building of significant steps")
     args = parser.parse_args()
 
     prompt_events = query_issues_and_prs()
