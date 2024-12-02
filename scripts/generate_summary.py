@@ -118,10 +118,10 @@ def query_issues_and_prs():
                 }
                 edges {
                     node {
-                        title
                         createdAt
                         url
                         bodyHTML
+                        titleHTML
                         timelineItems(itemTypes: CROSS_REFERENCED_EVENT, first: 100) {
                             edges {
                                 node {
