@@ -10,11 +10,11 @@ class PromptEvent:
     def __init__(self, issue, pull_requests):
         self.issue = issue
         self.pull_requests = pull_requests
-        self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
+        self.merged = any(pr["merged"] for pr in pull_requests)
         self.timestamp = self.get_timestamp()
 
     def get_timestamp(self):
-        if self.state == "Merged":
+        if self.merged:
             merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
             return min(pr["createdAt"] for pr in merged_prs)
         else:

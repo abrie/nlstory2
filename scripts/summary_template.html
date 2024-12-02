@@ -38,7 +38,7 @@
       {% endmacro %}
 
       {% for event in events %}
-      <li class="{% if event.state == 'Unmerged' or (event.pull_requests and not event.pull_requests[0].merged) %}dimmed{% endif %}">
+      <li class="{% if not event.merged %}dimmed{% endif %}">
         {% if event.issue %}
           {{ prompt_event_macro(event) }}
         {% else %}
