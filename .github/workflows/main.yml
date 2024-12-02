@@ -22,4 +22,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: execute generator
+        env:
+          GITHUB_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
         run: python scripts/generate_summary.py --build-significant-steps
