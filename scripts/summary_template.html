@@ -16,7 +16,7 @@
     <ul>
       {% macro commit_event_macro(event) %}
       <details>
-        <summary>{{ event.headline | safe }}</summary>
+        <summary>{{ event.headline | safe }} <span onclick="copyToClipboard('{{ event.abbreviatedOid }}')">{{ event.abbreviatedOid }}</span></summary>
         <p>{{ event.body | safe }}</p>
         <a href="{{ event.url }}">View Commit</a>
       </details>
@@ -24,7 +24,7 @@
 
       {% macro prompt_event_macro(event) %}
       <details>
-        <summary>{{ event.headline | safe }}</summary>
+        <summary>{{ event.headline | safe }} <span onclick="copyToClipboard('{{ event.abbreviatedOid }}')">{{ event.abbreviatedOid }}</span></summary>
         <p>{{ event.body | safe }}</p>
         <ul>
           {% for pr in event.pull_requests %}
@@ -47,5 +47,14 @@
       </li>
       {% endfor %}
     </ul>
+    <script>
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+          console.log('Copied to clipboard successfully!');
+        }, function(err) {
+          console.error('Could not copy text: ', err);
+        });
+      }
+    </script>
   </body>
 </html>
