@@ -12,6 +12,8 @@ class PromptEvent:
         self.pull_requests = pull_requests
         self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
         self.timestamp = self.get_timestamp()
+        self.headline = issue['titleHTML']
+        self.body = issue['bodyHTML']
 
     def get_timestamp(self):
         if self.state == "Merged":
@@ -116,10 +118,10 @@ def query_issues_and_prs():
                 }
                 edges {
                     node {
-                        title
                         createdAt
                         url
                         bodyHTML
+                        titleHTML
                         timelineItems(itemTypes: CROSS_REFERENCED_EVENT, first: 100) {
                             edges {
                                 node {

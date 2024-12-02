@@ -24,8 +24,8 @@
 
       {% macro prompt_event_macro(event) %}
       <details>
-        <summary>{{ event.issue.title }}</summary>
-        <p>{{ event.issue.bodyHTML | safe }}</p>
+        <summary>{{ event.headline | safe }}</summary>
+        <p>{{ event.body | safe }}</p>
         <ul>
           {% for pr in event.pull_requests %}
           <li class="{% if not pr.merged %}dimmed{% endif %}">
