@@ -10,16 +10,17 @@ class PromptEvent:
     def __init__(self, issue, pull_requests):
         self.issue = issue
         self.pull_requests = pull_requests
-        self.state = "Merged" if any(pr["merged"] for pr in pull_requests) else "Unmerged"
+        self.state = "Merged" if any(pr["merged"]
+                                     for pr in pull_requests) else "Unmerged"
         self.timestamp = self.get_timestamp()
         self.headline = issue['titleHTML']
         self.body = issue['bodyHTML']
         self.oid = None
         self.abbreviatedOid = None
         for pr in pull_requests:
-            if pr["merged"] and "mergeCommit" in pr:
-                self.oid = pr["mergeCommit"]["oid"]
-                self.abbreviatedOid = pr["mergeCommit"]["abbreviatedOid"]
+            if pr["oid"]:
+                self.oid = pr["oid"]
+                self.abbreviatedOid = pr["abbreviatedOid"]
                 break
 
     def get_timestamp(self):
@@ -194,16 +195,18 @@ def query_issues_and_prs():
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
-    
+
     events = prompt_events + main_trunk_commits
-    events.sort(key=lambda x: x.timestamp if isinstance(x, PromptEvent) else x.timestamp)
-    
+    events.sort(key=lambda x: x.timestamp if isinstance(
+        x, PromptEvent) else x.timestamp)
+
     print("Generating template...")
     output = render_template(events)
     output_file_path = os.path.abspath("index.html")
     with open(output_file_path, "w") as f:
         f.write(output)
-    print(f"Summary page generated successfully. Output file: {output_file_path}")
+    print(
+        f"Summary page generated successfully. Output file: {output_file_path}")
 
 
 if __name__ == "__main__":
