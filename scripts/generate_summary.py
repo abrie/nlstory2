@@ -1,6 +1,9 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import subprocess
+import shutil
+import tempfile
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -192,6 +195,40 @@ def query_issues_and_prs():
     return prompt_events
 
 
+def build_project_for_event(event, repo_path, builds_path):
+    event_path = os.path.join(builds_path, event.abbreviatedOid)
+    if not os.path.exists(event_path):
+        os.makedirs(event_path)
+
+    try:
+        # Check out the associated oid
+        subprocess.run(["git", "checkout", event.oid], cwd=repo_path, check=True)
+
+        # Remove all files and folders that are not part of the source tree
+        for item in os.listdir(repo_path):
+            if item not in ["src", "public", "package.json", "tsconfig.json", "vite.config.js"]:
+                item_path = os.path.join(repo_path, item)
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                else:
+                    os.remove(item_path)
+
+        # Install dependencies
+        subprocess.run(["yarn", "install"], cwd=repo_path, check=True)
+
+        # Build the project
+        subprocess.run(["npx", "vite", "build"], cwd=repo_path, check=True)
+
+        # Move the contents of the 'dist' folder into the event folder
+        dist_path = os.path.join(repo_path, "dist")
+        for item in os.listdir(dist_path):
+            shutil.move(os.path.join(dist_path, item), event_path)
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred during build for event {event.abbreviatedOid}: {e}")
+    except Exception as e:
+        print(f"Unexpected error occurred during build for event {event.abbreviatedOid}: {e}")
+
+
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
@@ -199,6 +236,22 @@ def main():
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(
         x, PromptEvent) else x.timestamp)
+
+    # Clone the abrie/nl12 repository into a temporary location
+    repo_path = tempfile.mkdtemp()
+    subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", repo_path], check=True)
+
+    # Create a 'builds' folder in the local directory
+    builds_path = os.path.abspath("builds")
+    if not os.path.exists(builds_path):
+        os.makedirs(builds_path)
+
+    # Build the project for each significant event
+    for event in events:
+        if isinstance(event, PromptEvent) and event.state == "Merged":
+            build_project_for_event(event, repo_path, builds_path)
+        elif isinstance(event, CommitEvent):
+            build_project_for_event(event, repo_path, builds_path)
 
     print("Generating template...")
     output = render_template(events)
