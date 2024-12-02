@@ -1,6 +1,9 @@
 import os
 import requests
 from jinja2 import Environment, FileSystemLoader
+import subprocess
+import shutil
+import tempfile
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
@@ -192,6 +195,31 @@ def query_issues_and_prs():
     return prompt_events
 
 
+def build_project(oid, abbreviatedOid):
+    temp_dir = tempfile.mkdtemp()
+    try:
+        subprocess.run(["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
+        subprocess.run(["git", "checkout", oid], cwd=temp_dir, check=True)
+        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
+        subprocess.run(["yarn", "install"], cwd=temp_dir, check=True)
+        result = subprocess.run(["npx", "vite", "build"], cwd=temp_dir)
+        if result.returncode != 0:
+            print(f"Build failed for {abbreviatedOid}")
+            return
+        build_dir = os.path.join("builds", abbreviatedOid)
+        os.makedirs(build_dir, exist_ok=True)
+        dist_dir = os.path.join(temp_dir, "dist")
+        for item in os.listdir(dist_dir):
+            s = os.path.join(dist_dir, item)
+            d = os.path.join(build_dir, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                shutil.copy2(s, d)
+    finally:
+        shutil.rmtree(temp_dir)
+
+
 def main():
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
@@ -199,6 +227,13 @@ def main():
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(
         x, PromptEvent) else x.timestamp)
+
+    os.makedirs("builds", exist_ok=True)
+    for event in events:
+        if isinstance(event, PromptEvent) and event.state == "Merged":
+            build_project(event.oid, event.abbreviatedOid)
+        elif isinstance(event, CommitEvent):
+            build_project(event.oid, event.abbreviatedOid)
 
     print("Generating template...")
     output = render_template(events)
