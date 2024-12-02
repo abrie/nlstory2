@@ -196,24 +196,29 @@ def query_issues_and_prs():
     return prompt_events
 
 
-def build_project(oid, abbreviatedOid):
+def clone_repository_once():
+    repo_dir = tempfile.mkdtemp()
+    subprocess.run(
+        ["git", "clone", "https://github.com/abrie/nl12.git", repo_dir], check=True)
+    return repo_dir
+
+
+def build_project(oid, abbreviatedOid, repo_dir):
     temp_dir = tempfile.mkdtemp()
     try:
-        subprocess.run(
-            ["git", "clone", "https://github.com/abrie/nl12.git", temp_dir], check=True)
         subprocess.run(["git", "switch", "--detach", oid],
-                       cwd=temp_dir, check=True)
-        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
+                       cwd=repo_dir, check=True)
+        subprocess.run(["git", "clean", "-fdx"], cwd=repo_dir, check=True)
         subprocess.run(["yarn", "install", "--silent"],
-                       cwd=temp_dir, check=True)
+                       cwd=repo_dir, check=True)
         result = subprocess.run(
-            ["npx", "vite", "build", "--logLevel", "silent"], cwd=temp_dir)
+            ["npx", "vite", "build", "--logLevel", "silent"], cwd=repo_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
             return
         build_dir = os.path.join("builds", abbreviatedOid)
         os.makedirs(build_dir, exist_ok=True)
-        dist_dir = os.path.join(temp_dir, "dist")
+        dist_dir = os.path.join(repo_dir, "dist")
         for item in os.listdir(dist_dir):
             s = os.path.join(dist_dir, item)
             d = os.path.join(build_dir, item)
@@ -240,11 +245,13 @@ def main():
 
     if args.build_significant_steps:
         os.makedirs("builds", exist_ok=True)
+        repo_dir = clone_repository_once()
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                build_project(event.oid, event.abbreviatedOid)
+                build_project(event.oid, event.abbreviatedOid, repo_dir)
             elif isinstance(event, CommitEvent):
-                build_project(event.oid, event.abbreviatedOid)
+                build_project(event.oid, event.abbreviatedOid, repo_dir)
+        shutil.rmtree(repo_dir)
 
     print("Generating template...")
     output = render_template(events)
