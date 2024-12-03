@@ -21,6 +21,7 @@ class PromptEvent:
         self.body = issue['bodyHTML']
         self.oid = None
         self.abbreviatedOid = None
+        self.build_success = False  # P85c5
         for pr in pull_requests:
             if pr["oid"]:
                 self.oid = pr["oid"]
@@ -44,6 +45,7 @@ class CommitEvent:
         self.body = commit['messageBodyHTML']
         self.oid = commit.get('oid')
         self.abbreviatedOid = commit.get('abbreviatedOid')
+        self.build_success = False  # P85c5
 
     def get_timestamp(self):
         return self.commit["committedDate"]
@@ -213,7 +215,7 @@ def build_project(oid, abbreviatedOid):
             ["npx", "vite", "build", "--base", "./", "--logLevel", "silent"], cwd=temp_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
-            return
+            return False  # Pd3dc
         build_dir = os.path.join("builds", abbreviatedOid)
         os.makedirs(build_dir, exist_ok=True)
         dist_dir = os.path.join(temp_dir, "dist")
@@ -224,6 +226,7 @@ def build_project(oid, abbreviatedOid):
                 shutil.copytree(s, d, dirs_exist_ok=True)
             else:
                 shutil.copy2(s, d)
+        return True  # Pd3dc
     finally:
         shutil.rmtree(temp_dir)
 
@@ -245,9 +248,9 @@ def main():
         os.makedirs("builds", exist_ok=True)
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                build_project(event.oid, event.abbreviatedOid)
+                event.build_success = build_project(event.oid, event.abbreviatedOid)  # Pace2
             elif isinstance(event, CommitEvent):
-                build_project(event.oid, event.abbreviatedOid)
+                event.build_success = build_project(event.oid, event.abbreviatedOid)  # Pace2
 
     print("Generating template...")
     output = render_template(events)

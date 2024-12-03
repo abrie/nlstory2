@@ -21,7 +21,9 @@
         <p>{{ event.body | safe }}</p>
         <a href="{{ event.url }}">View Commit</a>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+        {% if event.build_success %}
         <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+        {% endif %}
       </details>
       {% endmacro %} {% macro prompt_event_macro(event) %}
       <details>
@@ -38,7 +40,9 @@
           {% endfor %}
         </ul>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+        {% if event.build_success %}
         <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+        {% endif %}
       </details>
       {% endmacro %} {% for event in events %}
       <li
