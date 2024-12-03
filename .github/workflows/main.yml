@@ -34,6 +34,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: install node packages
+        run: |
+          yarn install
+
       - name: Build the app
         env:
           GITHUB_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
