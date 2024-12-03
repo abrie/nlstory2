@@ -21,7 +21,7 @@ class PromptEvent:
         self.body = issue['bodyHTML']
         self.oid = None
         self.abbreviatedOid = None
-        self.build_success = False  # P85c5
+        self.build_success = False
         for pr in pull_requests:
             if pr["oid"]:
                 self.oid = pr["oid"]
@@ -45,7 +45,7 @@ class CommitEvent:
         self.body = commit['messageBodyHTML']
         self.oid = commit.get('oid')
         self.abbreviatedOid = commit.get('abbreviatedOid')
-        self.build_success = False  # P85c5
+        self.build_success = False
 
     def get_timestamp(self):
         return self.commit["committedDate"]
@@ -215,7 +215,7 @@ def build_project(oid, abbreviatedOid):
             ["npx", "vite", "build", "--base", "./", "--logLevel", "silent"], cwd=temp_dir)
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
-            return False  # Pd3dc
+            return False
         build_dir = os.path.join("builds", abbreviatedOid)
         os.makedirs(build_dir, exist_ok=True)
         dist_dir = os.path.join(temp_dir, "dist")
@@ -226,7 +226,7 @@ def build_project(oid, abbreviatedOid):
                 shutil.copytree(s, d, dirs_exist_ok=True)
             else:
                 shutil.copy2(s, d)
-        return True  # Pd3dc
+        return True
     finally:
         shutil.rmtree(temp_dir)
 
@@ -248,9 +248,9 @@ def main():
         os.makedirs("builds", exist_ok=True)
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                event.build_success = build_project(event.oid, event.abbreviatedOid)  # Pace2
+                event.build_success = build_project(event.oid, event.abbreviatedOid)
             elif isinstance(event, CommitEvent):
-                event.build_success = build_project(event.oid, event.abbreviatedOid)  # Pace2
+                event.build_success = build_project(event.oid, event.abbreviatedOid)
 
     print("Generating template...")
     output = render_template(events)

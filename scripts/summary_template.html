@@ -40,7 +40,7 @@
           {% endfor %}
         </ul>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        {% if event.build_success %}
+        {% if event.build_success and event.state == "Merged" %}
         <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
         {% endif %}
       </details>
