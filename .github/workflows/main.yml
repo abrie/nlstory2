@@ -41,8 +41,7 @@ jobs:
           
       - name: Build the app
         run: |
-          npm exec vite build --base './'
-          mv builds dist
+          yarn build-all
 
       - name: Cache the dist for the deploy job
         uses: actions/cache/save@v4

@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "tsc && vite build --base './'",
+    "preview": "vite preview",
+    "generate-summary": "python scripts/generate_summary.py --build-significant-steps",
+    "build-all": "yarn generate-summary && yarn build && mv builds/ dist/"
   },
   "devDependencies": {
     "typescript": "~5.6.2",
