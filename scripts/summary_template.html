@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Repository Summary</title>
-    <link rel="stylesheet" href="/public/styles.css">
+    <link rel="stylesheet" href="/public/styles.css" />
     <style>
-      ul, li {
+      ul,
+      li {
         list-style-type: none;
       }
     </style>
@@ -20,11 +21,9 @@
         <p>{{ event.body | safe }}</p>
         <a href="{{ event.url }}">View Commit</a>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        <a href="/builds/{{ event.abbreviatedOid }}">View Build</a>
+        <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
       </details>
-      {% endmacro %}
-
-      {% macro prompt_event_macro(event) %}
+      {% endmacro %} {% macro prompt_event_macro(event) %}
       <details>
         <summary>{{ event.headline | safe }}</summary>
         <p>{{ event.body | safe }}</p>
@@ -32,22 +31,21 @@
           {% for pr in event.pull_requests %}
           <li class="{% if not pr.merged %}dimmed{% endif %}">
             {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
-            <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}">Branch: {{ pr.branch }}</a>
+            <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}"
+              >Branch: {{ pr.branch }}</a
+            >
           </li>
           {% endfor %}
         </ul>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        <a href="/builds/{{ event.abbreviatedOid }}">View Build</a>
+        <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
       </details>
-      {% endmacro %}
-
-      {% for event in events %}
-      <li class="{% if event.state == 'Unmerged' or (event.pull_requests and not event.pull_requests[0].merged) %}dimmed{% endif %}">
-        {% if event.issue %}
-          {{ prompt_event_macro(event) }}
-        {% else %}
-          {{ commit_event_macro(event) }}
-        {% endif %}
+      {% endmacro %} {% for event in events %}
+      <li
+        class="{% if event.state == 'Unmerged' or (event.pull_requests and not event.pull_requests[0].merged) %}dimmed{% endif %}"
+      >
+        {% if event.issue %} {{ prompt_event_macro(event) }} {% else %} {{
+        commit_event_macro(event) }} {% endif %}
       </li>
       {% endfor %}
     </ul>
