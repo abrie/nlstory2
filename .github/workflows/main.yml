@@ -34,10 +34,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: execute generator
+      - name: generate index.html and the `builds` folder
         env:
           GITHUB_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
         run: python scripts/generate_summary.py --build-significant-steps
+
+      - name: Build the app
+        run: |
+          npm exec vite build --base './'
+          mv builds dist
   
   deploy:
     needs: build
@@ -53,7 +58,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build'
+          path: './dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
