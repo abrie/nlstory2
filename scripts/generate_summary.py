@@ -5,9 +5,12 @@ import subprocess
 import shutil
 import tempfile
 import argparse
+import hashlib
+import json
 
 GITHUB_API_URL = "https://api.github.com/graphql"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+cache = {}
 
 
 class PromptEvent:
@@ -55,10 +58,16 @@ class CommitEvent:
 
 
 def query_github(query, variables=None):
+    global cache
+    query_hash = hashlib.sha256((query + str(variables)).encode()).hexdigest()
+    if query_hash in cache:
+        return cache[query_hash]
+
     headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     response = requests.post(GITHUB_API_URL, json={
                              "query": query, "variables": variables}, headers=headers)
     if response.status_code == 200:
+        cache[query_hash] = response.json()
         return response.json()
     else:
         raise Exception(
@@ -235,7 +244,13 @@ def main():
     parser = argparse.ArgumentParser(description="Generate summary")
     parser.add_argument("--build-significant-steps", action="store_true",
                         help="Toggle building of significant steps")
+    parser.add_argument("--cache-file", type=str, help="Specify the cache file")
     args = parser.parse_args()
+
+    global cache
+    if args.cache_file and os.path.exists(args.cache_file):
+        with open(args.cache_file, "r") as f:
+            cache = json.load(f)
 
     prompt_events = query_issues_and_prs()
     main_trunk_commits = get_main_trunk_commits()
@@ -259,6 +274,10 @@ def main():
         f.write(output)
     print(
         f"Summary page generated successfully. Output file: {output_file_path}")
+
+    if args.cache_file:
+        with open(args.cache_file, "w") as f:
+            json.dump(cache, f)
 
     if os.path.exists("nl12_repo"):
         shutil.rmtree("nl12_repo")
