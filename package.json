@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build --base './'",
     "preview": "vite preview",
-    "generate": "python scripts/generate_summary.py --build-significant-steps public/builds/"
+    "generate": "python scripts/generate_summary.py --repository abrie/nl12 --build-significant-steps public/builds/"
   },
   "devDependencies": {
     "typescript": "~5.6.2",

@@ -80,11 +80,11 @@ def render_template(events):
     return template.render(events=events)
 
 
-def get_main_trunk_commits():
+def get_main_trunk_commits(owner, repo):
     print("Querying GitHub API for main trunk commits...")
     query = """
-    query($cursor: String) {
-        repository(owner: "abrie", name: "nl12") {
+    query($owner: String!, $repo: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
             ref(qualifiedName: "refs/heads/main") {
                 target {
                     ... on Commit {
@@ -116,7 +116,7 @@ def get_main_trunk_commits():
     cursor = None
     commits = []
     while True:
-        result = query_github(query, {"cursor": cursor})
+        result = query_github(query, {"owner": owner, "repo": repo, "cursor": cursor})
         history = result["data"]["repository"]["ref"]["target"]["history"]
         for edge in history["edges"]:
             commit = edge["node"]
@@ -137,11 +137,11 @@ def get_main_trunk_commits():
     return commits
 
 
-def query_issues_and_prs():
+def query_issues_and_prs(owner, repo):
     print("Querying GitHub API for issues...")
     query = """
-    query($cursor: String) {
-        repository(owner: "abrie", name: "nl12") {
+    query($owner: String!, $repo: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
             issues(first: 100, after: $cursor) {
                 pageInfo {
                     endCursor
@@ -183,7 +183,7 @@ def query_issues_and_prs():
     cursor = None
     prompt_events = []
     while True:
-        result = query_github(query, {"cursor": cursor})
+        result = query_github(query, {"owner": owner, "repo": repo, "cursor": cursor})
         issues = result["data"]["repository"]["issues"]
         for edge in issues["edges"]:
             issue = edge["node"]
@@ -207,17 +207,17 @@ def query_issues_and_prs():
     return prompt_events
 
 
-def build_project(oid, abbreviatedOid, output_folder):
-    repo_dir = "nl12_repo"
+def build_project(owner, repo, oid, abbreviatedOid, output_folder):
+    repo_dir = f"{repo}_repo"
     if not os.path.exists(repo_dir):
         subprocess.run(
-            ["git", "clone", "https://github.com/abrie/nl12.git", repo_dir], check=True)
+            ["git", "clone", f"https://github.com/{owner}/{repo}.git", repo_dir], check=True)
     temp_dir = tempfile.mkdtemp()
     try:
         shutil.copytree(repo_dir, temp_dir, dirs_exist_ok=True)
         subprocess.run(["git", "switch", "--detach", oid],
                        cwd=temp_dir, check=True)
-        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
+        subprocess.run(["git", "clean", "-fdx"], cwd(temp_dir, check=True)
         subprocess.run(["yarn", "install", "--silent"],
                        cwd=temp_dir, check=True)
         result = subprocess.run(
@@ -245,6 +245,8 @@ def main():
     parser.add_argument("--build-significant-steps", type=str,
                         help="Specify the folder path for building significant steps")
     parser.add_argument("--cache-file", type=str, help="Specify the cache file")
+    parser.add_argument("--repository", type=str, required=True,
+                        help="Specify the repository in the format owner/repo")
     args = parser.parse_args()
 
     global cache
@@ -252,8 +254,10 @@ def main():
         with open(args.cache_file, "r") as f:
             cache = json.load(f)
 
-    prompt_events = query_issues_and_prs()
-    main_trunk_commits = get_main_trunk_commits()
+    owner, repo = args.repository.split("/")
+
+    prompt_events = query_issues_and_prs(owner, repo)
+    main_trunk_commits = get_main_trunk_commits(owner, repo)
 
     events = prompt_events + main_trunk_commits
     events.sort(key=lambda x: x.timestamp if isinstance(
@@ -263,9 +267,9 @@ def main():
         os.makedirs(args.build_significant_steps, exist_ok=True)
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                event.build_success = build_project(event.oid, event.abbreviatedOid, args.build_significant_steps)
+                event.build_success = build_project(owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
             elif isinstance(event, CommitEvent):
-                event.build_success = build_project(event.oid, event.abbreviatedOid, args.build_significant_steps)
+                event.build_success = build_project(owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
 
     print("Generating template...")
     output = render_template(events)
@@ -279,8 +283,8 @@ def main():
         with open(args.cache_file, "w") as f:
             json.dump(cache, f)
 
-    if os.path.exists("nl12_repo"):
-        shutil.rmtree("nl12_repo")
+    if os.path.exists(f"{repo}_repo"):
+        shutil.rmtree(f"{repo}_repo")
 
 
 if __name__ == "__main__":
