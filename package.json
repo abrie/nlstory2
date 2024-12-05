@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build --base './'",
     "preview": "vite preview",
-    "generate-summary": "python scripts/generate_summary.py --build-significant-steps",
+    "generate-summary": "python scripts/generate_summary.py --build-significant-steps builds/",
     "build-all": "yarn generate-summary && yarn build && mv builds/ dist/"
   },
   "devDependencies": {
