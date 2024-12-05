@@ -12,42 +12,42 @@
       }
     </style>
   </head>
+
+  {% macro commit_event_macro(event) %}
+  <details>
+    <summary>{{ event.headline | safe }}</summary>
+    <p>{{ event.body | safe }}</p>
+    <a href="{{ event.url }}">View Commit</a>
+    <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+    {% if event.build_success %}
+    <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+    {% endif %}
+  </details>
+  {% endmacro %} {% macro prompt_event_macro(event) %}
+  <details class="{% if not event.merged %}dimmed{% endif %}">
+    <summary>{{ event.headline | safe }}</summary>
+    <p>{{ event.body | safe }}</p>
+    <ul>
+      {% for pr in event.pull_requests %}
+      <li class="{% if not pr.merged %}dimmed{% endif %}">
+        {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
+        <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}"
+          >Branch: {{ pr.branch }}</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+    <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
+    {% if event.build_success and event.merged %}
+    <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+    {% endif %}
+  </details>
+  {% endmacro %}
   <body>
     <h1>Summary of Significant Activity</h1>
     <ul>
-      {% macro commit_event_macro(event) %}
-      <details>
-        <summary>{{ event.headline | safe }}</summary>
-        <p>{{ event.body | safe }}</p>
-        <a href="{{ event.url }}">View Commit</a>
-        <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        {% if event.build_success %}
-        <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
-        {% endif %}
-      </details>
-      {% endmacro %} {% macro prompt_event_macro(event) %}
-      <details>
-        <summary>{{ event.headline | safe }}</summary>
-        <p>{{ event.body | safe }}</p>
-        <ul>
-          {% for pr in event.pull_requests %}
-          <li class="{% if not pr.merged %}dimmed{% endif %}">
-            {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
-            <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}"
-              >Branch: {{ pr.branch }}</a
-            >
-          </li>
-          {% endfor %}
-        </ul>
-        <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        {% if event.build_success and event.merged %}
-        <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
-        {% endif %}
-      </details>
-      {% endmacro %} {% for event in events %}
-      <li
-        class="{% if not event.merged %}dimmed{% endif %}"
-      >
+      {% for event in events %}
+      <li>
         {% if event.issue %} {{ prompt_event_macro(event) }} {% else %} {{
         commit_event_macro(event) }} {% endif %}
       </li>
