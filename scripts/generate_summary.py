@@ -207,7 +207,7 @@ def query_issues_and_prs():
     return prompt_events
 
 
-def build_project(oid, abbreviatedOid):
+def build_project(oid, abbreviatedOid, output_folder):
     repo_dir = "nl12_repo"
     if not os.path.exists(repo_dir):
         subprocess.run(
@@ -225,7 +225,7 @@ def build_project(oid, abbreviatedOid):
         if result.returncode != 0:
             print(f"Build failed for {abbreviatedOid}")
             return False
-        build_dir = os.path.join("builds", abbreviatedOid)
+        build_dir = os.path.join(output_folder, abbreviatedOid)
         os.makedirs(build_dir, exist_ok=True)
         dist_dir = os.path.join(temp_dir, "dist")
         for item in os.listdir(dist_dir):
@@ -242,8 +242,8 @@ def build_project(oid, abbreviatedOid):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate summary")
-    parser.add_argument("--build-significant-steps", action="store_true",
-                        help="Toggle building of significant steps")
+    parser.add_argument("--build-significant-steps", type=str,
+                        help="Specify the folder path for building significant steps")
     parser.add_argument("--cache-file", type=str, help="Specify the cache file")
     args = parser.parse_args()
 
@@ -260,12 +260,12 @@ def main():
         x, PromptEvent) else x.timestamp)
 
     if args.build_significant_steps:
-        os.makedirs("builds", exist_ok=True)
+        os.makedirs(args.build_significant_steps, exist_ok=True)
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                event.build_success = build_project(event.oid, event.abbreviatedOid)
+                event.build_success = build_project(event.oid, event.abbreviatedOid, args.build_significant_steps)
             elif isinstance(event, CommitEvent):
-                event.build_success = build_project(event.oid, event.abbreviatedOid)
+                event.build_success = build_project(event.oid, event.abbreviatedOid, args.build_significant_steps)
 
     print("Generating template...")
     output = render_template(events)
