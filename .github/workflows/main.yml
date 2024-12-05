@@ -42,7 +42,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}
         run: |
-          yarn build-all
+          yarn generate && yarn build
 
       - name: Cache the dist for the deploy job
         uses: actions/cache/save@v4
