@@ -40,13 +40,13 @@
           {% endfor %}
         </ul>
         <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-        {% if event.build_success and event.state == "Merged" %}
+        {% if event.build_success and event.merged %}
         <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
         {% endif %}
       </details>
       {% endmacro %} {% for event in events %}
       <li
-        class="{% if event.state == 'Unmerged' or (event.pull_requests and not event.pull_requests[0].merged) %}dimmed{% endif %}"
+        class="{% if not event.merged %}dimmed{% endif %}"
       >
         {% if event.issue %} {{ prompt_event_macro(event) }} {% else %} {{
         commit_event_macro(event) }} {% endif %}

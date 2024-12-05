@@ -17,8 +17,7 @@ class PromptEvent:
     def __init__(self, issue, pull_requests):
         self.issue = issue
         self.pull_requests = pull_requests
-        self.state = "Merged" if any(pr["merged"]
-                                     for pr in pull_requests) else "Unmerged"
+        self.merged = any(pr["merged"] for pr in pull_requests)
         self.timestamp = self.get_timestamp()
         self.headline = issue['titleHTML']
         self.body = issue['bodyHTML']
@@ -32,7 +31,7 @@ class PromptEvent:
                 break
 
     def get_timestamp(self):
-        if self.state == "Merged":
+        if self.merged:
             merged_prs = [pr for pr in self.pull_requests if pr["merged"]]
             return min(pr["createdAt"] for pr in merged_prs)
         else:
@@ -269,7 +268,7 @@ def main():
     if args.build_significant_steps:
         os.makedirs(args.build_significant_steps, exist_ok=True)
         for event in events:
-            if isinstance(event, PromptEvent) and event.state == "Merged":
+            if isinstance(event, PromptEvent) and event.merged:
                 event.build_success = build_project(
                     owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
             elif isinstance(event, CommitEvent):
