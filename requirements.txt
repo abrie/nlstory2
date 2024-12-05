@@ -1,14 +1,2 @@
-beautifulsoup4==4.12.3
-certifi==2024.8.30
-charset-normalizer==3.4.0
-idna==3.10
 Jinja2==3.1.4
-Markdown==3.7
-markdown2==2.5.1
-marked==0.9.1
-markgen==0.9.6
-MarkupSafe==3.0.2
-mistune==3.0.2
 requests==2.32.3
-soupsieve==2.6
-urllib3==2.2.3
