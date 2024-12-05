@@ -116,7 +116,8 @@ def get_main_trunk_commits(owner, repo):
     cursor = None
     commits = []
     while True:
-        result = query_github(query, {"owner": owner, "repo": repo, "cursor": cursor})
+        result = query_github(
+            query, {"owner": owner, "repo": repo, "cursor": cursor})
         history = result["data"]["repository"]["ref"]["target"]["history"]
         for edge in history["edges"]:
             commit = edge["node"]
@@ -183,7 +184,8 @@ def query_issues_and_prs(owner, repo):
     cursor = None
     prompt_events = []
     while True:
-        result = query_github(query, {"owner": owner, "repo": repo, "cursor": cursor})
+        result = query_github(
+            query, {"owner": owner, "repo": repo, "cursor": cursor})
         issues = result["data"]["repository"]["issues"]
         for edge in issues["edges"]:
             issue = edge["node"]
@@ -217,7 +219,7 @@ def build_project(owner, repo, oid, abbreviatedOid, output_folder):
         shutil.copytree(repo_dir, temp_dir, dirs_exist_ok=True)
         subprocess.run(["git", "switch", "--detach", oid],
                        cwd=temp_dir, check=True)
-        subprocess.run(["git", "clean", "-fdx"], cwd(temp_dir, check=True)
+        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
         subprocess.run(["yarn", "install", "--silent"],
                        cwd=temp_dir, check=True)
         result = subprocess.run(
@@ -244,7 +246,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate summary")
     parser.add_argument("--build-significant-steps", type=str,
                         help="Specify the folder path for building significant steps")
-    parser.add_argument("--cache-file", type=str, help="Specify the cache file")
+    parser.add_argument("--cache-file", type=str,
+                        help="Specify the cache file")
     parser.add_argument("--repository", type=str, required=True,
                         help="Specify the repository in the format owner/repo")
     args = parser.parse_args()
@@ -267,9 +270,11 @@ def main():
         os.makedirs(args.build_significant_steps, exist_ok=True)
         for event in events:
             if isinstance(event, PromptEvent) and event.state == "Merged":
-                event.build_success = build_project(owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
+                event.build_success = build_project(
+                    owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
             elif isinstance(event, CommitEvent):
-                event.build_success = build_project(owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
+                event.build_success = build_project(
+                    owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
 
     print("Generating template...")
     output = render_template(events)
