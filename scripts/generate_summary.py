@@ -216,32 +216,27 @@ def build_project(owner, repo, oid, abbreviatedOid, output_folder):
     if not os.path.exists(repo_dir):
         subprocess.run(
             ["git", "clone", f"https://github.com/{owner}/{repo}.git", repo_dir], check=True)
-    temp_dir = tempfile.mkdtemp()
-    try:
-        shutil.copytree(repo_dir, temp_dir, dirs_exist_ok=True)
-        subprocess.run(["git", "switch", "--detach", oid],
-                       cwd=temp_dir, check=True)
-        subprocess.run(["git", "clean", "-fdx"], cwd=temp_dir, check=True)
-        subprocess.run(["yarn", "install", "--silent"],
-                       cwd=temp_dir, check=True)
-        result = subprocess.run(
-            ["npx", "vite", "build", "--base", "./", "--logLevel", "silent"], cwd=temp_dir)
-        if result.returncode != 0:
-            print(f"Build failed for {abbreviatedOid}")
-            return False
-        build_dir = os.path.join(output_folder, abbreviatedOid)
-        os.makedirs(build_dir, exist_ok=True)
-        dist_dir = os.path.join(temp_dir, "dist")
-        for item in os.listdir(dist_dir):
-            s = os.path.join(dist_dir, item)
-            d = os.path.join(build_dir, item)
-            if os.path.isdir(s):
-                shutil.copytree(s, d, dirs_exist_ok=True)
-            else:
-                shutil.copy2(s, d)
-        return True
-    finally:
-        shutil.rmtree(temp_dir)
+    subprocess.run(["git", "switch", "--detach", oid],
+                   cwd=repo_dir, check=True)
+    subprocess.run(["git", "clean", "-fdx"], cwd=repo_dir, check=True)
+    subprocess.run(["yarn", "install", "--silent"],
+                   cwd=repo_dir, check=True)
+    result = subprocess.run(
+        ["npx", "vite", "build", "--base", "./", "--logLevel", "silent"], cwd=repo_dir)
+    if result.returncode != 0:
+        print(f"Build failed for {abbreviatedOid}")
+        return False
+    build_dir = os.path.join(output_folder, abbreviatedOid)
+    os.makedirs(build_dir, exist_ok=True)
+    dist_dir = os.path.join(repo_dir, "dist")
+    for item in os.listdir(dist_dir):
+        s = os.path.join(dist_dir, item)
+        d = os.path.join(build_dir, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, dirs_exist_ok=True)
+        else:
+            shutil.copy2(s, d)
+    return True
 
 
 def main():
