@@ -216,9 +216,9 @@ def build_project(owner, repo, oid, abbreviatedOid, output_folder):
     if not os.path.exists(repo_dir):
         subprocess.run(
             ["git", "clone", f"https://github.com/{owner}/{repo}.git", repo_dir], check=True)
+    subprocess.run(["git", "clean", "-fdx"], cwd=repo_dir, check=True)
     subprocess.run(["git", "switch", "--detach", oid],
                    cwd=repo_dir, check=True)
-    subprocess.run(["git", "clean", "-fdx"], cwd=repo_dir, check=True)
     subprocess.run(["yarn", "install", "--silent"],
                    cwd=repo_dir, check=True)
     result = subprocess.run(
