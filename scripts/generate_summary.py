@@ -196,7 +196,8 @@ def query_issues_and_prs(owner, repo):
                     "merged": pr["merged"],
                     "branch": pr["headRefName"],
                     "oid": pr["mergeCommit"]["oid"] if pr["merged"] else None,
-                    "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None
+                    "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None,
+                    "url": pr["url"]
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)
