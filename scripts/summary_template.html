@@ -14,25 +14,25 @@
   </head>
 
   {% macro commit_event_macro(event) %}
-  <details>
-    <summary>{{ event.headline | safe }}</summary>
-    <p>{{ event.body | safe }}</p>
-    <a href="{{ event.url }}">View Commit</a>
+  <details class="border border-gray-300 rounded-md p-4 mb-4">
+    <summary class="font-semibold text-lg">{{ event.headline | safe }}</summary>
+    <p class="text-gray-700">{{ event.body | safe }}</p>
+    <a class="text-blue-500 hover:underline" href="{{ event.url }}">View Commit</a>
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
-    <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
+    <a class="text-blue-500 hover:underline" href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
     {% endif %}
   </details>
   {% endmacro %} {% macro prompt_event_macro(event) %}
-  <details class="{% if not event.merged %}dimmed{% endif %}">
-    <summary>{{ event.headline | safe }}</summary>
-    <p>{{ event.body | safe }}</p>
+  <details class="border border-gray-300 rounded-md p-4 mb-4 {% if not event.merged %}opacity-50{% endif %}">
+    <summary class="font-semibold text-lg">{{ event.headline | safe }}</summary>
+    <p class="text-gray-700">{{ event.body | safe }}</p>
     <div class="pull-request-list">
       <ul>
         {% for pr in event.pull_requests %}
-        <li class="{% if not pr.merged %}dimmed{% endif %}">
-          {% if pr.merged %} - <a href="{{ pr.url }}">Merged</a> {% else %} -
-          <a href="{{ pr.url }}">Unmerged</a>
+        <li class="{% if not pr.merged %}opacity-50{% endif %}">
+          {% if pr.merged %} - <a class="text-blue-500 hover:underline" href="{{ pr.url }}">Merged</a> {% else %} -
+          <a class="text-blue-500 hover:underline" href="{{ pr.url }}">Unmerged</a>
           {% endif %}
         </li>
         {% endfor %}
@@ -40,14 +40,14 @@
     </div>
     <div class="builds">
       {% if event.build_success and event.merged %}
-      <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
+      <a class="text-blue-500 hover:underline" href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
       {% else %} No merges and no builds. {% endif %}
     </div>
   </details>
   {% endmacro %}
 
   <body>
-    <h1>Summary of Significant Activity</h1>
+    <h1 class="text-3xl font-bold mb-6">Summary of Significant Activity</h1>
     <ul>
       {% for event in events %}
       <li>
