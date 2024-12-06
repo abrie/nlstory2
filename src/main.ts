@@ -1,2 +1,2 @@
-// Nothing here right now
+import "./styles.css";
 console.log("Hello");
