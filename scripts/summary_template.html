@@ -27,21 +27,22 @@
   <details class="{% if not event.merged %}dimmed{% endif %}">
     <summary>{{ event.headline | safe }}</summary>
     <p>{{ event.body | safe }}</p>
-    <ul>
-      {% for pr in event.pull_requests %}
-      <li class="{% if not pr.merged %}dimmed{% endif %}">
-        {% if pr.merged %}Merged{% else %}Not Merged{% endif %}
-        <a href="https://github.com/abrie/nl12/tree/{{ pr.branch }}"
-          >Branch: {{ pr.branch }}</a
-        >
-        <a href="{{ pr.url }}">View Pull Request</a>
-      </li>
-      {% endfor %}
-    </ul>
-    <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
-    {% if event.build_success and event.merged %}
-    <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
-    {% endif %}
+    <div class="pull-request-list">
+      <ul>
+        {% for pr in event.pull_requests %}
+        <li class="{% if not pr.merged %}dimmed{% endif %}">
+          {% if pr.merged %} - <a href="{{ pr.url }}">Merged</a> {% else %} -
+          <a href="{{ pr.url }}">Unmerged</a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="builds">
+      {% if event.build_success and event.merged %}
+      <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
+      {% else %} No merges and no builds. {% endif %}
+    </div>
   </details>
   {% endmacro %}
 
