@@ -34,6 +34,15 @@
           {% if pr.merged %} - <a href="{{ pr.url }}">Merged</a> {% else %} -
           <a href="{{ pr.url }}">Unmerged</a>
           {% endif %}
+          <div class="comments">
+            <ul>
+              {% for comment in pr.comments %}
+              <li>
+                <strong>{{ comment.author }}</strong>: {{ comment.bodyHTML | safe }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </li>
         {% endfor %}
       </ul>
