@@ -20,7 +20,7 @@
     <a href="{{ event.url }}">View Commit</a>
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
-    <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+    <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
     {% endif %}
   </details>
   {% endmacro %} {% macro prompt_event_macro(event) %}
@@ -39,7 +39,7 @@
     </ul>
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success and event.merged %}
-    <a href="./builds/{{ event.abbreviatedOid }}">View Build</a>
+    <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
     {% endif %}
   </details>
   {% endmacro %}
