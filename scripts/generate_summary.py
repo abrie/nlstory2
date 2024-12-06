@@ -229,13 +229,7 @@ def build_project(owner, repo, oid, abbreviatedOid, output_folder):
     build_dir = os.path.join(output_folder, abbreviatedOid)
     os.makedirs(build_dir, exist_ok=True)
     dist_dir = os.path.join(repo_dir, "dist")
-    for item in os.listdir(dist_dir):
-        s = os.path.join(dist_dir, item)
-        d = os.path.join(build_dir, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, dirs_exist_ok=True)
-        else:
-            shutil.copy2(s, d)
+    shutil.copytree(dist_dir, build_dir, dirs_exist_ok=True)
     return True
 
 
