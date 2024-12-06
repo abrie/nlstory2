@@ -14,25 +14,25 @@
   </head>
 
   {% macro commit_event_macro(event) %}
-  <details>
-    <summary>{{ event.headline | safe }}</summary>
+  <div class="card bg-white shadow-md rounded-lg p-4 mb-4">
+    <h2 class="text-xl font-bold mb-2">{{ event.headline | safe }}</h2>
     <p>{{ event.body | safe }}</p>
-    <a href="{{ event.url }}">View Commit</a>
+    <a href="{{ event.url }}" class="btn btn-primary mt-4">View Commit</a>
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
-    <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
+    <a href="./builds/{{ event.abbreviatedOid }}/index.html" class="btn btn-primary mt-4">View Build</a>
     {% endif %}
-  </details>
+  </div>
   {% endmacro %} {% macro prompt_event_macro(event) %}
-  <details class="{% if not event.merged %}dimmed{% endif %}">
-    <summary>{{ event.headline | safe }}</summary>
+  <div class="card bg-white shadow-md rounded-lg p-4 mb-4 {% if not event.merged %}opacity-50{% endif %}">
+    <h2 class="text-xl font-bold mb-2">{{ event.headline | safe }}</h2>
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
       <ul>
         {% for pr in event.pull_requests %}
-        <li class="{% if not pr.merged %}dimmed{% endif %}">
-          {% if pr.merged %} - <a href="{{ pr.url }}">Merged</a> {% else %} -
-          <a href="{{ pr.url }}">Unmerged</a>
+        <li class="{% if not pr.merged %}opacity-50{% endif %}">
+          {% if pr.merged %} - <a href="{{ pr.url }}" class="btn btn-primary mt-4">Merged</a> {% else %} -
+          <a href="{{ pr.url }}" class="btn btn-primary mt-4">Unmerged</a>
           {% endif %}
         </li>
         {% endfor %}
@@ -40,22 +40,22 @@
     </div>
     <div class="builds">
       {% if event.build_success and event.merged %}
-      <a href="./builds/{{ event.abbreviatedOid }}/index.html">View Build</a>
+      <a href="./builds/{{ event.abbreviatedOid }}/index.html" class="btn btn-primary mt-4">View Build</a>
       {% else %} No merges and no builds. {% endif %}
     </div>
-  </details>
+  </div>
   {% endmacro %}
 
   <body>
     <h1>Summary of Significant Activity</h1>
-    <ul>
+    <div class="space-y-4">
       {% for event in events %}
-      <li>
+      <div>
         {% if event.issue %} {{ prompt_event_macro(event) }} {% else %} {{
         commit_event_macro(event) }} {% endif %}
-      </li>
+      </div>
       {% endfor %}
-    </ul>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
