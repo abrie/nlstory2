@@ -209,6 +209,9 @@ def query_issues_and_prs(owner, repo):
 
 
 def build_project(owner, repo, oid, abbreviatedOid, output_folder):
+    if os.path.exists(os.path.join(output_folder, abbreviatedOid)):
+        return True
+
     repo_dir = f"{repo}_repo"
     if not os.path.exists(repo_dir):
         subprocess.run(
