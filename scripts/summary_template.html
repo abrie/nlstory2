@@ -8,9 +8,13 @@
 
   {% macro commit_event_macro(event) %}
   <div class="bg-green-100 p-4 rounded-lg shadow-md mb-4">
-    <div class="font-bold text-lg">{{ event.headline | safe }}</div>
+    <div class="font-bold text-lg">
+      <a href="{{ event.url }}" class="no-underline">
+        {{ event.headline | safe }}
+      </a>
+    </div>
     <p>{{ event.body | safe }}</p>
-    <a href="{{ event.url }}" class="text-blue-500">View Commit</a>
+
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
     <a
@@ -21,16 +25,18 @@
     {% endif %}
   </div>
   {% endmacro %} {% macro prompt_event_macro(event) %}
-  <div
-    class="bg-blue-100 p-4 rounded-lg shadow-md mb-4 {% if not event.merged %}opacity-50{% endif %}"
-  >
-    <div class="font-bold text-lg">{{ event.headline | safe }}</div>
+  <div class="bg-blue-100 p-4 rounded-lg shadow-md mb-4">
+    <div class="font-bold text-lg">
+      <a class="no-underline" href="{{event.issue.url}}"
+        >{{ event.headline | safe }}</a
+      >
+    </div>
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
-      <ul>
+      <ul class="ml-5 list-disc">
         {% for pr in event.pull_requests %}
         <li class="{% if not pr.merged %}opacity-50{% endif %}">
-          {% if pr.merged %} -
+          {% if pr.merged %}
           <a href="{{ pr.url }}" class="text-blue-500">Merged</a> {% else %} -
           <a href="{{ pr.url }}" class="text-blue-500">Unmerged</a>
           {% endif %}
