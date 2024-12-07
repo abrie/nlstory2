@@ -26,7 +26,8 @@
   {% endmacro %}
 
   {% macro prompt_event_macro(event) %}
-  <div class="bg-blue-100 p-4 rounded-lg shadow-md mb-4 {% if not event.merged %}opacity-50{% endif %}">
+  {% if event.merged %}
+  <div class="bg-blue-100 p-4 rounded-lg shadow-md mb-4">
     <div class="font-bold text-lg">{{ event.headline | safe }}</div>
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
@@ -46,6 +47,14 @@
       {% else %} No merges and no builds. {% endif %}
     </div>
   </div>
+  {% else %}
+  <div class="bg-blue-100 p-4 rounded-lg shadow-md mb-4">
+    <div class="font-bold text-lg">Unmerged PromptEvents</div>
+    <div class="icon">
+      <span class="icon-count">{{ event.pull_requests | length }}</span>
+    </div>
+  </div>
+  {% endif %}
   {% endmacro %}
 
   <body>
