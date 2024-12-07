@@ -48,13 +48,27 @@
   </div>
   {% endmacro %}
 
+  {% macro grouped_prompt_event_macro(event) %}
+  <div class="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
+    <div class="font-bold text-lg">Unmerged Events ({{ event.length }})</div>
+    <div class="ellipsis">⋮</div>
+  </div>
+  {% endmacro %}
+
   <body>
     <h1 class="text-2xl font-bold mb-4">Summary of Significant Activity</h1>
     <ul>
       {% for event in events %}
       <li>
-        {% if event.issue %} {{ prompt_event_macro(event) }} {% else %} {{
-        commit_event_macro(event) }} {% endif %}
+        {% if event.issue %}
+          {% if event.merged %}
+            {{ prompt_event_macro(event) }}
+          {% else %}
+            {{ grouped_prompt_event_macro(event) }}
+          {% endif %}
+        {% else %}
+          {{ commit_event_macro(event) }}
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

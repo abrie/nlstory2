@@ -56,6 +56,13 @@ class CommitEvent:
         return self.commit["url"].split("/")[-1]
 
 
+class GroupedPromptEvent:
+    def __init__(self, events):
+        self.events = events
+        self.length = len(events)
+        self.timestamp = events[0].timestamp
+
+
 def query_github(query, variables=None):
     global cache
     query_hash = hashlib.sha256((query + str(variables)).encode()).hexdigest()
@@ -209,6 +216,25 @@ def query_issues_and_prs(owner, repo):
     return prompt_events
 
 
+def group_unmerged_prompt_events(events):
+    grouped_events = []
+    current_group = []
+
+    for event in events:
+        if isinstance(event, PromptEvent) and not event.merged:
+            current_group.append(event)
+        else:
+            if current_group:
+                grouped_events.append(GroupedPromptEvent(current_group))
+                current_group = []
+            grouped_events.append(event)
+
+    if current_group:
+        grouped_events.append(GroupedPromptEvent(current_group))
+
+    return grouped_events
+
+
 def build_project(owner, repo, oid, abbreviatedOid, output_folder):
     if os.path.exists(os.path.join(output_folder, abbreviatedOid)):
         return True
@@ -258,9 +284,11 @@ def main():
     events.sort(key=lambda x: x.timestamp if isinstance(
         x, PromptEvent) else x.timestamp)
 
+    grouped_events = group_unmerged_prompt_events(events)
+
     if args.build_significant_steps:
         os.makedirs(args.build_significant_steps, exist_ok=True)
-        for event in events:
+        for event in grouped_events:
             if isinstance(event, PromptEvent) and event.merged:
                 event.build_success = build_project(
                     owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
@@ -269,7 +297,7 @@ def main():
                     owner, repo, event.oid, event.abbreviatedOid, args.build_significant_steps)
 
     print("Generating template...")
-    output = render_template(events)
+    output = render_template(grouped_events)
     output_file_path = os.path.abspath("index.html")
     with open(output_file_path, "w") as f:
         f.write(output)
