@@ -4,13 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Repository Summary</title>
-    <link rel="stylesheet" href="/styles.css" />
-    <style>
-      ul,
-      li {
-        list-style-type: none;
-      }
-    </style>
   </head>
 
   {% macro commit_event_macro(event) %}
@@ -20,20 +13,25 @@
     <a href="{{ event.url }}" class="text-blue-500">View Commit</a>
     <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
-    <a href="./builds/{{ event.abbreviatedOid }}/index.html" class="text-blue-500">View Build</a>
+    <a
+      href="./builds/{{ event.abbreviatedOid }}/index.html"
+      class="text-blue-500"
+      >View Build</a
+    >
     {% endif %}
   </div>
-  {% endmacro %}
-
-  {% macro prompt_event_macro(event) %}
-  <div class="bg-blue-100 p-4 rounded-lg shadow-md mb-4 {% if not event.merged %}opacity-50{% endif %}">
+  {% endmacro %} {% macro prompt_event_macro(event) %}
+  <div
+    class="bg-blue-100 p-4 rounded-lg shadow-md mb-4 {% if not event.merged %}opacity-50{% endif %}"
+  >
     <div class="font-bold text-lg">{{ event.headline | safe }}</div>
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
       <ul>
         {% for pr in event.pull_requests %}
         <li class="{% if not pr.merged %}opacity-50{% endif %}">
-          {% if pr.merged %} - <a href="{{ pr.url }}" class="text-blue-500">Merged</a> {% else %} -
+          {% if pr.merged %} -
+          <a href="{{ pr.url }}" class="text-blue-500">Merged</a> {% else %} -
           <a href="{{ pr.url }}" class="text-blue-500">Unmerged</a>
           {% endif %}
         </li>
@@ -42,17 +40,16 @@
     </div>
     <div class="builds">
       {% if event.build_success and event.merged %}
-      <a href="./builds/{{ event.abbreviatedOid }}/index.html" class="text-blue-500">View Build</a>
+      <a
+        href="./builds/{{ event.abbreviatedOid }}/index.html"
+        class="text-blue-500"
+        >View Build</a
+      >
       {% else %} No merges and no builds. {% endif %}
     </div>
   </div>
-  {% endmacro %}
-
-  {% macro grouped_prompt_event_macro(event) %}
-  <div class="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
-    <div class="font-bold text-lg">Unmerged Events ({{ event.length }})</div>
-    <div class="ellipsis">⋮</div>
-  </div>
+  {% endmacro %} {% macro grouped_prompt_event_macro(event) %}
+  <div class="pl-4 mb-4 ellipsis text-xl font-bold">⋮</div>
   {% endmacro %}
 
   <body>
@@ -60,15 +57,9 @@
     <ul>
       {% for event in events %}
       <li>
-        {% if event.issue %}
-          {% if event.merged %}
-            {{ prompt_event_macro(event) }}
-          {% else %}
-            {{ grouped_prompt_event_macro(event) }}
-          {% endif %}
-        {% else %}
-          {{ commit_event_macro(event) }}
-        {% endif %}
+        {% if event.issue %} {{ prompt_event_macro(event) }} {% elif
+        event.events %} {{ grouped_prompt_event_macro(event) }} {% elif
+        event.commit %} {{ commit_event_macro(event) }} {% endif %}
       </li>
       {% endfor %}
     </ul>
