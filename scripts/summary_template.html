@@ -15,7 +15,6 @@
     </div>
     <p>{{ event.body | safe }}</p>
 
-    <span class="abbreviated-oid">{{ event.abbreviatedOid }}</span>
     {% if event.build_success %}
     <a
       href="./builds/{{ event.abbreviatedOid }}/index.html"
@@ -33,6 +32,7 @@
     </div>
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
+      <hr class="w-48 my-2" />
       <ul class="ml-5 list-disc">
         {% for pr in event.pull_requests %}
         <li class="{% if not pr.merged %}opacity-50{% endif %}">
