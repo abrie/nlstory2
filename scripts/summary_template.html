@@ -40,6 +40,9 @@
           <a href="{{ pr.url }}" class="text-blue-500">Merged</a> {% else %} -
           <a href="{{ pr.url }}" class="text-blue-500">Unmerged</a>
           {% endif %}
+          {% if pr.first_comment %}
+          <div class="text-gray-600 mt-2">{{ pr.first_comment | safe }}</div>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>
