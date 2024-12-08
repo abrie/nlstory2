@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.0.0-beta.6",
     "tailwindcss": "^4.0.0-beta.6",
     "typescript": "~5.6.2",
-    "vite": "^6.0.2"
+    "vite": "^6.0.2",
+    "vite-plugin-command": "^1.0.0"
   }
 }
