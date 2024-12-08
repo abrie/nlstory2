@@ -175,6 +175,13 @@ def query_issues_and_prs(owner, repo):
                                                     oid
                                                     abbreviatedOid
                                                 }
+                                                comments(first: 10) {
+                                                    edges {
+                                                        node {
+                                                            bodyText
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -198,13 +205,16 @@ def query_issues_and_prs(owner, repo):
             pull_requests = []
             for pr_edge in issue["timelineItems"]["edges"]:
                 pr = pr_edge["node"]["source"]
+                comments = [comment["node"]["bodyText"]
+                            for comment in pr["comments"]["edges"]]
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
                     "branch": pr["headRefName"],
                     "oid": pr["mergeCommit"]["oid"] if pr["merged"] else None,
                     "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None,
-                    "url": pr["url"]
+                    "url": pr["url"],
+                    "comments": comments
                 })
             prompt_event = PromptEvent(issue, pull_requests)
             prompt_events.append(prompt_event)
