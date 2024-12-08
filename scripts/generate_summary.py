@@ -24,6 +24,7 @@ class PromptEvent:
         self.oid = None
         self.abbreviatedOid = None
         self.build_success = False
+        self.first_comment = None  # Pe4d9
         for pr in pull_requests:
             if pr["oid"]:
                 self.oid = pr["oid"]
@@ -175,6 +176,13 @@ def query_issues_and_prs(owner, repo):
                                                     oid
                                                     abbreviatedOid
                                                 }
+                                                comments(first: 1) {
+                                                    edges {
+                                                        node {
+                                                            bodyHTML
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -198,15 +206,18 @@ def query_issues_and_prs(owner, repo):
             pull_requests = []
             for pr_edge in issue["timelineItems"]["edges"]:
                 pr = pr_edge["node"]["source"]
+                first_comment = pr["comments"]["edges"][0]["node"]["bodyHTML"] if pr["comments"]["edges"] else None
                 pull_requests.append({
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
                     "branch": pr["headRefName"],
                     "oid": pr["mergeCommit"]["oid"] if pr["merged"] else None,
                     "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None,
-                    "url": pr["url"]
+                    "url": pr["url"],
+                    "first_comment": first_comment  # P980c
                 })
             prompt_event = PromptEvent(issue, pull_requests)
+            prompt_event.first_comment = first_comment  # P980c
             prompt_events.append(prompt_event)
         print(f"Processed a page of issues, cursor: {cursor}")
         if not issues["pageInfo"]["hasNextPage"]:
