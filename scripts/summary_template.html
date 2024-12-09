@@ -33,12 +33,23 @@
     <p>{{ event.body | safe }}</p>
     <div class="pull-request-list">
       <hr class="w-48 my-2" />
-      <ul class="ml-5 list-disc">
+      <ul class="ml-5">
         {% for pr in event.pull_requests %}
-        <li class="{% if not pr.merged %}opacity-50{% endif %}">
+        <li>
           {% if pr.merged %}
-          <a href="{{ pr.url }}" class="text-blue-500">Merged</a> {% else %} -
-          <a href="{{ pr.url }}" class="text-blue-500">Unmerged</a>
+          <details>
+            <summary>
+              <a href="{{ pr.url }}" class="text-blue-500">Merged</a>
+            </summary>
+            <div class="pl-4 text-sm">{{pr.bodyHTML | safe}}</div>
+          </details>
+          {% else %}
+          <details>
+            <summary>
+              <a href="{{ pr.url }}" class="text-blue-500">Unmerged</a>
+            </summary>
+            <div class="pl-4 text-sm">{{pr.bodyHTML | safe}}</div>
+          </details>
           {% endif %}
         </li>
         {% endfor %}

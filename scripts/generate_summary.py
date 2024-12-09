@@ -170,6 +170,7 @@ def query_issues_and_prs(owner, repo):
                                                 createdAt
                                                 url
                                                 merged
+                                                bodyHTML
                                                 headRefName
                                                 mergeCommit {
                                                     oid
@@ -202,6 +203,7 @@ def query_issues_and_prs(owner, repo):
                     "createdAt": pr["createdAt"],
                     "merged": pr["merged"],
                     "branch": pr["headRefName"],
+                    "bodyHTML": pr["bodyHTML"],
                     "oid": pr["mergeCommit"]["oid"] if pr["merged"] else None,
                     "abbreviatedOid": pr["mergeCommit"]["abbreviatedOid"] if pr["merged"] else None,
                     "url": pr["url"]
